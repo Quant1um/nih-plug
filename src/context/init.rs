@@ -14,6 +14,8 @@ pub trait InitContext<P: Plugin> {
     /// Get the current plugin API.
     fn plugin_api(&self) -> PluginApi;
 
+    fn host_name(&self) -> String;
+
     /// Run a task directly on this thread. This ensures that the task has finished executing before
     /// the plugin finishes initializing.
     ///

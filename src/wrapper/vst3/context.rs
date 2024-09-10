@@ -67,6 +67,10 @@ impl<P: Vst3Plugin> InitContext<P> for WrapperInitContext<'_, P> {
         PluginApi::Vst3
     }
 
+    fn host_name(&self) -> String {
+        self.inner.host_name.borrow().clone()
+    }
+
     fn execute(&self, task: P::BackgroundTask) {
         (self.inner.task_executor.lock())(task);
     }

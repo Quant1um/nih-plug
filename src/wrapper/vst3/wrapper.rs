@@ -6,18 +6,20 @@ use std::ptr::NonNull;
 use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use vst3_com::vst::{DataEvent, IProcessContextRequirementsFlags, ProcessModes};
-use vst3_sys::base::{kInvalidArgument, kNoInterface, kResultFalse, kResultOk, tresult, TBool};
+use vst3_sys::base::{
+    kInvalidArgument, kNoInterface, kResultFalse, kResultOk, tresult, IUnknown, TBool,
+};
 use vst3_sys::base::{IBStream, IPluginBase};
 use vst3_sys::utils::SharedVstPtr;
 use vst3_sys::vst::{
     kNoParamId, kNoParentUnitId, kNoProgramListId, kRootUnitId, Event, EventTypes, IAudioProcessor,
-    IComponent, IEditController, IEventList, IMidiMapping, INoteExpressionController,
-    IParamValueQueue, IParameterChanges, IProcessContextRequirements, IUnitInfo,
-    LegacyMidiCCOutEvent, NoteExpressionTypeInfo, NoteExpressionValueDescription, NoteOffEvent,
-    NoteOnEvent, ParameterFlags, PolyPressureEvent, ProgramListInfo, TChar, UnitInfo,
+    IComponent, IEditController, IEventList, IHostApplication, IMidiMapping,
+    INoteExpressionController, IParamValueQueue, IParameterChanges, IProcessContextRequirements,
+    IUnitInfo, LegacyMidiCCOutEvent, NoteExpressionTypeInfo, NoteExpressionValueDescription,
+    NoteOffEvent, NoteOnEvent, ParameterFlags, PolyPressureEvent, ProgramListInfo, TChar, UnitInfo,
 };
 use vst3_sys::VST3;
-use widestring::U16CStr;
+use widestring::{U16CStr, U16CString};
 
 use super::inner::{ProcessEvent, WrapperInner};
 use super::note_expressions::{self, NoteExpressionController};
@@ -64,8 +66,17 @@ impl<P: Vst3Plugin> Drop for Wrapper<P> {
 }
 
 impl<P: Vst3Plugin> IPluginBase for Wrapper<P> {
-    unsafe fn initialize(&self, _context: *mut c_void) -> tresult {
-        // We currently don't need or allow any initialization logic
+    unsafe fn initialize(&self, context: *mut c_void) -> tresult {
+        if let Some(host) = vst3_sys::VstPtr::<dyn IUnknown>::shared(context as *mut _)
+            .and_then(|p| p.cast::<dyn IHostApplication>())
+        {
+            let mut buffer = [0u16; 128];
+            if host.get_name(buffer.as_mut_ptr()) == kResultOk {
+                *self.inner.host_name.borrow_mut() =
+                    U16CString::from_ptr_truncate(buffer.as_ptr(), buffer.len()).to_string_lossy();
+            }
+        }
+
         kResultOk
     }
 

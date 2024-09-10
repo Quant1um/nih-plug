@@ -164,7 +164,7 @@ pub struct Wrapper<P: ClapPlugin> {
     updated_state_receiver: channel::Receiver<PluginState>,
 
     // We'll query all of the host's extensions upfront
-    host_callback: ClapPtr<clap_host>,
+    pub host_callback: ClapPtr<clap_host>,
 
     clap_plugin_audio_ports_config: clap_plugin_audio_ports_config,
 

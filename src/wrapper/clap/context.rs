@@ -6,6 +6,7 @@ use clap_sys::id::{clap_id, CLAP_INVALID_ID};
 use clap_sys::string_sizes::CLAP_NAME_SIZE;
 use std::cell::Cell;
 use std::collections::{HashMap, VecDeque};
+use std::ffi::CStr;
 use std::sync::Arc;
 
 use super::wrapper::{OutputParamEvent, Task, Wrapper};
@@ -76,6 +77,32 @@ impl<P: ClapPlugin> Drop for WrapperInitContext<'_, P> {
 impl<P: ClapPlugin> InitContext<P> for WrapperInitContext<'_, P> {
     fn plugin_api(&self) -> PluginApi {
         PluginApi::Clap
+    }
+
+    fn host_name(&self) -> String {
+        unsafe {
+            let name = if self.wrapper.host_callback.name.is_null() {
+                "".into()
+            } else {
+                CStr::from_ptr(self.wrapper.host_callback.name).to_string_lossy()
+            };
+
+            let vendor = if self.wrapper.host_callback.vendor.is_null() {
+                "".into()
+            } else {
+                CStr::from_ptr(self.wrapper.host_callback.vendor).to_string_lossy()
+            };
+
+            let version = if self.wrapper.host_callback.version.is_null() {
+                "".into()
+            } else {
+                CStr::from_ptr(self.wrapper.host_callback.version).to_string_lossy()
+            };
+
+            format!("{name} {version} ({vendor})")
+        }
+
+        //self.wrapper.
     }
 
     fn execute(&self, task: P::BackgroundTask) {

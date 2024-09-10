@@ -41,6 +41,10 @@ impl<P: Plugin, B: Backend<P>> InitContext<P> for WrapperInitContext<'_, P, B> {
         PluginApi::Standalone
     }
 
+    fn host_name(&self) -> String {
+        "standalone".to_owned()
+    }
+
     fn execute(&self, task: P::BackgroundTask) {
         (self.wrapper.task_executor.lock())(task);
     }

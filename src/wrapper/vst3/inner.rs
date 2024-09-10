@@ -41,6 +41,9 @@ pub(crate) struct WrapperInner<P: Vst3Plugin> {
     /// creating an editor. Wrapped in an `AtomicRefCell` because it needs to be initialized late.
     pub editor: AtomicRefCell<Option<Arc<Mutex<Box<dyn Editor>>>>>,
 
+    /// TODO: !!!!!!!!!!!
+    pub host_name: AtomicRefCell<String>,
+
     /// The host's [`IComponentHandler`] instance, if passed through
     /// [`IEditController::set_component_handler`].
     pub component_handler: AtomicRefCell<Option<VstPtr<dyn IComponentHandler>>>,
@@ -282,6 +285,8 @@ impl<P: Vst3Plugin> WrapperInner<P> {
             editor: AtomicRefCell::new(None),
 
             component_handler: AtomicRefCell::new(None),
+
+            host_name: AtomicRefCell::new(String::new()),
 
             plug_view: RwLock::new(None),
 
