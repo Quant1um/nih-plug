@@ -128,8 +128,9 @@ impl Plugin for Gain {
                         ui.add(widgets::ParamSlider::for_param(&params.gain, setter));
 
                         ui.label(
-                        "Also gain, but with a lame widget. Can't even render the value correctly!",
-                    );
+                            "Also gain, but with a lame widget. Can't even render the value \
+                             correctly!",
+                        );
                         // This is a simple naieve version of a parameter slider that's not aware of how
                         // the parameters work
                         ui.add(
