@@ -323,6 +323,13 @@ impl Editor for CustomGlEditor {
     fn param_values_changed(&self) {
         // Same
     }
+
+    fn standalone_opengl_config(&self) -> Option<baseview::gl::GlConfig> {
+        Some(baseview::gl::GlConfig {
+            vsync: true,
+            ..Default::default()
+        })
+    }
 }
 
 /// The window handle used for [`CustomGlEditor`].

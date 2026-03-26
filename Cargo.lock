@@ -826,10 +826,10 @@ checksum = "5d20789868f4b01b2f2caec9f5c4e0213b41e3e5702a50157d699ae31ced2fcb"
 name = "byo_gui_gl"
 version = "0.1.0"
 dependencies = [
- "atomic_float 0.1.0",
- "baseview 0.1.0 (git+https://github.com/RustAudio/baseview.git?rev=9a0b42c09d712777b2edb4c5e0cb6baf21e988f0)",
+ "atomic_float 1.1.0",
+ "baseview 0.1.0 (git+https://github.com/tomoyanonymous/baseview.git?rev=f65c76424077b593d536e79c606798541b1984b3)",
  "crossbeam",
- "glow 0.16.0",
+ "glow 0.17.0",
  "nih_plug",
  "raw-window-handle 0.5.2",
  "serde",
@@ -2466,6 +2466,18 @@ name = "glow"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c5e5ea60d70410161c8bf5da3fdfeaa1c72ed2c15f8bbb9d19fe3a4fad085f08"
+dependencies = [
+ "js-sys",
+ "slotmap",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "glow"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29038e1c483364cc6bb3cf78feee1816002e127c331a1eec55a4d202b9e1adb5"
 dependencies = [
  "js-sys",
  "slotmap",

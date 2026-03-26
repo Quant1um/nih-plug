@@ -45,6 +45,25 @@ pub trait Editor: Send {
     /// scaling factor to get the actual physical screen pixels.
     fn size(&self) -> (u32, u32);
 
+    /// The OpenGL configuration to use when running in standalone mode.
+    ///
+    /// Setting to `None` will spawn no OpenGL context.
+    ///
+    /// By default this is set to:
+    /// ```no_run
+    /// Some(baseview::gl::GlConfig {
+    ///    vsync: true,
+    ///    ..Default::default()
+    /// })
+    /// ```
+    #[cfg(feature = "standalone-opengl")]
+    fn standalone_opengl_config(&self) -> Option<baseview::gl::GlConfig> {
+        Some(baseview::gl::GlConfig {
+            vsync: true,
+            ..Default::default()
+        })
+    }
+
     /// Set the DPI scaling factor, if supported. The plugin APIs don't make any guarantees on when
     /// this is called, but for now just assume it will be the first function that gets called
     /// before creating the editor. If this is set, then any windows created by this editor should

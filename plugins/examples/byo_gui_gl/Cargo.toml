@@ -12,11 +12,11 @@ description = "A simple example plugin with a raw OpenGL context for rendering"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-nih_plug = { path = "../../../", features = ["assert_process_allocs", "standalone"] }
-baseview = { git = "https://github.com/RustAudio/baseview.git", rev = "9a0b42c09d712777b2edb4c5e0cb6baf21e988f0", features = ["opengl"] }
+nih_plug = { path = "../../../", features = ["assert_process_allocs", "standalone-opengl"] }
+baseview = { git = "https://github.com/tomoyanonymous/baseview.git", rev = "f65c76424077b593d536e79c606798541b1984b3", features = ["opengl"] }
 raw-window-handle = "0.5"
-glow = "0.16"
+glow = "0.17"
 crossbeam = "0.8"
-atomic_float = "0.1"
+atomic_float = "1.1.0"
 # To make the state persistable
 serde = { version = "1.0", features = ["derive"] }
