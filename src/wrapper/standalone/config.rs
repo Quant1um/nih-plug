@@ -98,7 +98,7 @@ pub struct WrapperConfig {
     pub gl_major_version: u8,
     #[clap(value_parser, long, default_value = "2")]
     pub gl_minor_version: u8,
-    #[clap(value_parser, long, default_value = "auto")]
+    #[clap(value_parser, long, default_value = "core")]
     pub gl_profile: Profile,
     #[clap(value_parser, long, default_value = "8")]
     pub gl_red_bits: u8,

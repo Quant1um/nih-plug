@@ -5,10 +5,7 @@ use std::sync::Arc;
 
 use anyhow::{Context, Result};
 use crossbeam::sync::Parker;
-use jack::{
-    AsyncClient, AudioIn, AudioOut, Client, ClientOptions, ClosureProcessHandler, Control, MidiIn,
-    MidiOut, Port,
-};
+use jack::{AsyncClient, AudioIn, AudioOut, Client, ClientOptions, Control, MidiIn, MidiOut, Port};
 use parking_lot::Mutex;
 
 use super::super::config::WrapperConfig;
@@ -115,7 +112,7 @@ impl<P: Plugin> Backend<P> for Jack {
         let aux_output_ports = self.aux_output_ports.clone();
         let midi_input = self.midi_input.clone();
         let midi_output = self.midi_output.clone();
-        let process_handler = ClosureProcessHandler::new(move |client, ps| {
+        let process_handler = jack::contrib::ClosureProcessHandler::new(move |client, ps| {
             // In theory we could handle `num_frames <= buffer_size`, but JACK will never chop up
             // buffers like that so we'll just make it easier for ourselves by not supporting that
             let num_frames = ps.n_frames();
@@ -347,8 +344,10 @@ impl Jack {
             .to_lowercase()
             .replace(' ', "_");
         for port_no in 1..num_input_channels + 1 {
-            main_inputs
-                .push(client.register_port(&format!("{main_input_name}_{port_no}"), AudioIn)?);
+            main_inputs.push(
+                client
+                    .register_port(&format!("{main_input_name}_{port_no}"), AudioIn::default())?,
+            );
         }
 
         // We can't immediately connect the outputs. Or well we can with PipeWire, but JACK2 says
@@ -364,8 +363,10 @@ impl Jack {
             .to_lowercase()
             .replace(' ', "_");
         for port_no in 1..num_output_channels + 1 {
-            main_outputs
-                .push(client.register_port(&format!("{main_output_name}_{port_no}"), AudioOut)?);
+            main_outputs.push(client.register_port(
+                &format!("{main_output_name}_{port_no}"),
+                AudioOut::default(),
+            )?);
         }
 
         // The JACK backend also exposes ports for auxiliary inputs and outputs
@@ -379,7 +380,12 @@ impl Jack {
 
             let mut ports = Vec::new();
             for port_no in 1..channel_count.get() + 1 {
-                ports.push(client.register_port(&format!("{aux_input_name}_{port_no}"), AudioIn)?);
+                ports.push(
+                    client.register_port(
+                        &format!("{aux_input_name}_{port_no}"),
+                        AudioIn::default(),
+                    )?,
+                );
             }
 
             aux_input_ports.push(ports);
@@ -395,22 +401,28 @@ impl Jack {
 
             let mut ports = Vec::new();
             for port_no in 1..channel_count.get() + 1 {
-                ports
-                    .push(client.register_port(&format!("{aux_output_name}_{port_no}"), AudioOut)?);
+                ports.push(
+                    client.register_port(
+                        &format!("{aux_output_name}_{port_no}"),
+                        AudioOut::default(),
+                    )?,
+                );
             }
 
             aux_output_ports.push(ports);
         }
 
         let midi_input = if P::MIDI_INPUT >= MidiConfig::Basic {
-            Some(Arc::new(client.register_port("midi_input", MidiIn)?))
+            Some(Arc::new(
+                client.register_port("midi_input", MidiIn::default())?,
+            ))
         } else {
             None
         };
 
         let midi_output = if P::MIDI_OUTPUT >= MidiConfig::Basic {
             Some(Arc::new(Mutex::new(
-                client.register_port("midi_output", MidiOut)?,
+                client.register_port("midi_output", MidiOut::default())?,
             )))
         } else {
             None

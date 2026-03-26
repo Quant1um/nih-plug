@@ -32,7 +32,7 @@ pub use integer::IntParam;
 bitflags::bitflags! {
     /// Flags for controlling a parameter's behavior.
     #[repr(transparent)]
-    #[derive(Default)]
+    #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
     pub struct ParamFlags: u32 {
         /// When applied to a [`BoolParam`], this will cause the parameter to be linked to the
         /// host's bypass control. Only a single parameter can be marked as a bypass parameter. If
