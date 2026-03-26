@@ -93,6 +93,41 @@ pub struct WrapperConfig {
     /// The time signature's denominator.
     #[clap(value_parser, long, default_value = "4")]
     pub timesig_denom: u32,
+
+    #[clap(value_parser, long, default_value = "3")]
+    pub gl_major_version: u8,
+    #[clap(value_parser, long, default_value = "2")]
+    pub gl_minor_version: u8,
+    #[clap(value_parser, long, default_value = "auto")]
+    pub gl_profile: Profile,
+    #[clap(value_parser, long, default_value = "8")]
+    pub gl_red_bits: u8,
+    #[clap(value_parser, long, default_value = "8")]
+    pub gl_blue_bits: u8,
+    #[clap(value_parser, long, default_value = "8")]
+    pub gl_green_bits: u8,
+    #[clap(value_parser, long, default_value = "8")]
+    pub gl_alpha_bits: u8,
+    #[clap(value_parser, long, default_value = "24")]
+    pub gl_depth_bits: u8,
+    #[clap(value_parser, long, default_value = "8")]
+    pub gl_stencil_bits: u8,
+    #[clap(value_parser, long)]
+    pub gl_samples: Option<u8>,
+    #[clap(value_parser, long, default_value = "true")]
+    pub gl_srgb: bool,
+    #[clap(value_parser, long, default_value = "true")]
+    pub gl_double_buffer: bool,
+    #[clap(value_parser, long, default_value = "true")]
+    pub gl_vsync: bool,
+}
+
+#[cfg(feature = "standalone-opengl")]
+#[derive(Default, Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+pub enum Profile {
+    Compatibility,
+    #[default]
+    Core,
 }
 
 /// Determines which audio and MIDI backend should be used.

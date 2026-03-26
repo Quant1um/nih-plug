@@ -23,6 +23,9 @@ use crate::util::permit_alloc;
 use crate::wrapper::state::{self, PluginState};
 use crate::wrapper::util::process_wrapper;
 
+#[cfg(feature = "standalone-opengl")]
+use crate::wrapper::standalone::config::Profile;
+
 /// How many parameter changes we can store in our unprocessed parameter change queue. Storing more
 /// than this many parameters at a time will cause changes to get lost.
 const EVENT_QUEUE_CAPACITY: usize = 2048;
@@ -342,7 +345,24 @@ impl<P: Plugin, B: Backend<P>> Wrapper<P, B> {
                             height: height as f64,
                         },
                         scale: scaling_policy,
-                        gl_config: None,
+                        #[cfg(feature = "standalone-opengl")]
+                        gl_config: Some(baseview::gl::GlConfig {
+                            version: (self.config.gl_major_version, self.config.gl_minor_version),
+                            profile: match self.config.gl_profile {
+                                Profile::Compatibility => baseview::gl::Profile::Compatibility,
+                                Profile::Core => baseview::gl::Profile::Core,
+                            },
+                            red_bits: self.config.gl_red_bits,
+                            blue_bits: self.config.gl_blue_bits,
+                            green_bits: self.config.gl_green_bits,
+                            alpha_bits: self.config.gl_alpha_bits,
+                            depth_bits: self.config.gl_depth_bits,
+                            stencil_bits: self.config.gl_stencil_bits,
+                            samples: self.config.gl_samples,
+                            srgb: self.config.gl_srgb,
+                            double_buffer: self.config.gl_double_buffer,
+                            vsync: self.config.gl_vsync,
+                        }),
                     },
                     move |window| {
                         let parent_handle = match window.raw_window_handle() {

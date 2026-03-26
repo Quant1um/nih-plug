@@ -47,7 +47,7 @@ members = [
 ]
 
 [features]
-default = ["vst3"]
+default = ["vst3", "standalone-opengl"]
 
 # Enabling this feature will cause the plugin to terminate when allocations
 # occur in the processing function during debug builds. Keep in mind that panics
@@ -58,6 +58,7 @@ assert_process_allocs = ["dep:assert_no_alloc"]
 # `nih_export_standalone()` function. Disabled by default as this requires
 # building additional dependencies for audio and MIDI handling.
 standalone = ["dep:baseview", "dep:clap", "dep:cpal", "dep:jack", "dep:midir", "dep:rtrb"]
+standalone-opengl = ["standalone", "baseview/opengl"]
 # Enables the `nih_export_vst3!()` macro. Enabled by default. This feature
 # exists mostly for GPL-compliance reasons, since even if you don't use the VST3
 # wrapper you might otherwise still include a couple (unused) symbols from the
@@ -97,13 +98,14 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 widestring = "1.0.0-beta.1"
 
+
 # Used for the `assert_process_allocs` feature
 assert_no_alloc = { git = "https://github.com/robbert-vdh/rust-assert-no-alloc.git", branch = "feature/nested-permit-forbid", features = ["backtrace", "log"], optional = true }
 
 # Used for the `standalone` feature
 # NOTE: OpenGL support is not needed here, but rust-analyzer gets confused when
 #       some crates do use it and others don't
-baseview = { git = "https://github.com/tomoyanonymous/baseview.git", rev = "f65c76424077b593d536e79c606798541b1984b3", features = ["opengl"], optional = true }
+baseview = { git = "https://github.com/tomoyanonymous/baseview.git", rev = "f65c76424077b593d536e79c606798541b1984b3", optional = true }
 # All the claps!
 clap = { version = "4.1.8", features = ["derive", "wrap_help"], optional = true }
 cpal = { version = "0.15", optional = true }
