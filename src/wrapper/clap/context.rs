@@ -1,7 +1,5 @@
 use atomic_refcell::AtomicRefMut;
-use clap_sys::ext::remote_controls::{
-    clap_remote_controls_page, CLAP_REMOTE_CONTROLS_COUNT,
-};
+use clap_sys::ext::remote_controls::{clap_remote_controls_page, CLAP_REMOTE_CONTROLS_COUNT};
 use clap_sys::id::{clap_id, CLAP_INVALID_ID};
 use clap_sys::string_sizes::CLAP_NAME_SIZE;
 use std::cell::Cell;

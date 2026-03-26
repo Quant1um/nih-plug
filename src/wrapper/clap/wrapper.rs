@@ -22,9 +22,6 @@ use clap_sys::ext::audio_ports::{
 use clap_sys::ext::audio_ports_config::{
     clap_audio_ports_config, clap_plugin_audio_ports_config, CLAP_EXT_AUDIO_PORTS_CONFIG,
 };
-use clap_sys::ext::remote_controls::{
-    clap_plugin_remote_controls, clap_remote_controls_page, CLAP_EXT_REMOTE_CONTROLS,
-};
 use clap_sys::ext::gui::{
     clap_gui_resize_hints, clap_host_gui, clap_plugin_gui, clap_window, CLAP_EXT_GUI,
     CLAP_WINDOW_API_COCOA, CLAP_WINDOW_API_WIN32, CLAP_WINDOW_API_X11,
@@ -39,6 +36,9 @@ use clap_sys::ext::params::{
     CLAP_PARAM_IS_AUTOMATABLE, CLAP_PARAM_IS_BYPASS, CLAP_PARAM_IS_HIDDEN,
     CLAP_PARAM_IS_MODULATABLE, CLAP_PARAM_IS_MODULATABLE_PER_NOTE_ID, CLAP_PARAM_IS_READONLY,
     CLAP_PARAM_IS_STEPPED, CLAP_PARAM_RESCAN_VALUES,
+};
+use clap_sys::ext::remote_controls::{
+    clap_plugin_remote_controls, clap_remote_controls_page, CLAP_EXT_REMOTE_CONTROLS,
 };
 use clap_sys::ext::render::{
     clap_plugin_render, clap_plugin_render_mode, CLAP_EXT_RENDER, CLAP_RENDER_OFFLINE,
