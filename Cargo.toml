@@ -61,7 +61,9 @@ assert_process_allocs = ["dep:assert_no_alloc"]
 # `nih_export_standalone()` function. Disabled by default as this requires
 # building additional dependencies for audio and MIDI handling.
 standalone = ["dep:baseview", "dep:clap", "dep:cpal", "dep:jack", "dep:midir", "dep:rtrb"]
-# Enables opengl support in standalone mode
+# Enables opengl support in standalone mode.
+# TODO: Send PR to baseview to derive Default for WindowOpenOptions so that
+# this isn't necessary.
 standalone-opengl = ["standalone", "baseview?/opengl"]
 # Enables the `nih_export_vst3!()` macro. Enabled by default. This feature
 # exists mostly for GPL-compliance reasons, since even if you don't use the VST3

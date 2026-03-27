@@ -4,7 +4,8 @@
 [![Tests](https://github.com/BillyDM/nih-plug/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/BillyDM/nih-plug/actions/workflows/test.yml?query=branch%3Amaster)
 <!-- TODO: [![Docs](https://github.com/BillyDM/nih-plug/actions/workflows/docs.yml/badge.svg?branch=master)](https://nih-plug.robbertvanderhelm.nl/) -->
 
-> This is a hard fork of https://github.com/robbert-vdh/nih-plug, since the original author is no longer maintaining it.
+> This is a hard fork of https://github.com/robbert-vdh/nih-plug, since the
+> original author is no longer maintaining it.
 
 NIH-plug is an API-agnostic audio plugin framework written in Rust, as well as a
 small collection of plugins. The idea is to have a stateful yet simple plugin
@@ -36,8 +37,8 @@ builds](https://github.com/robbert-vdh/nih-plug/actions/workflows/build.yml?quer
 page. Or if you're not signed in on GitHub, then you can also find the latest
 nightly build
 [here](https://nightly.link/robbert-vdh/nih-plug/workflows/build/master). You
-may need to [disable Gatekeeper](https://disable-gatekeeper.github.io/) on macOS to be able to use
-the plugins.
+may need to [disable Gatekeeper](https://disable-gatekeeper.github.io/) on macOS
+to be able to use the plugins.
 
 Scroll down for more information on the underlying plugin framework.
 
@@ -228,8 +229,9 @@ examples.
 ## Licensing
 
 The framework, its libraries, and the example plugins in `plugins/examples/` are
-all licensed under the [ISC license](https://www.isc.org/licenses/). However,
-the [VST3 bindings](https://github.com/RustAudio/vst3-sys) used by
+all licensed under the [ISC license](https://www.isc.org/licenses/).
+
+However, the [VST3 bindings](https://github.com/RustAudio/vst3-sys) used by
 `nih_export_vst3!()` are licensed under the GPLv3 license. This means that
 unless you replace these bindings with your own bindings made from scratch, any
 VST3 plugins built with NIH-plug need to be able to comply with the terms of the
