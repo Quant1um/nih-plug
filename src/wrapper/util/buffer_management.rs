@@ -183,36 +183,41 @@ impl BufferManager {
         });
 
         // The main buffer points directly to the main output pointers
-        self.main_buffer.set_slices(num_samples, |output_slices| {
-            match self.main_output_channel_pointers {
-                Some(output_channel_pointers) => {
-                    nih_debug_assert_eq!(output_slices.len(), output_channel_pointers.num_channels);
-                    for (channel_idx, output_slice) in output_slices
-                        .iter_mut()
-                        .enumerate()
-                        .take(output_channel_pointers.num_channels)
-                    {
-                        let output_channel_pointer =
-                            output_channel_pointers.ptrs.as_ptr().add(channel_idx);
-
-                        *output_slice = std::slice::from_raw_parts_mut(
-                            (*output_channel_pointer).add(sample_offset),
-                            num_samples,
+        unsafe {
+            self.main_buffer.set_slices(num_samples, |output_slices| {
+                match self.main_output_channel_pointers {
+                    Some(output_channel_pointers) => {
+                        nih_debug_assert_eq!(
+                            output_slices.len(),
+                            output_channel_pointers.num_channels
                         );
+                        for (channel_idx, output_slice) in output_slices
+                            .iter_mut()
+                            .enumerate()
+                            .take(output_channel_pointers.num_channels)
+                        {
+                            let output_channel_pointer =
+                                output_channel_pointers.ptrs.as_ptr().add(channel_idx);
+
+                            *output_slice = std::slice::from_raw_parts_mut(
+                                (*output_channel_pointer).add(sample_offset),
+                                num_samples,
+                            );
+                        }
+
+                        // If the caller/host should have provided buffer pointers but didn't then we
+                        // must get rid of any dangling slices
+                        output_slices[output_channel_pointers.num_channels..].fill_with(|| &mut [])
                     }
+                    None => {
+                        nih_debug_assert_eq!(output_slices.len(), 0);
 
-                    // If the caller/host should have provided buffer pointers but didn't then we
-                    // must get rid of any dangling slices
-                    output_slices[output_channel_pointers.num_channels..].fill_with(|| &mut [])
+                        // Same as above
+                        output_slices.fill_with(|| &mut [])
+                    }
                 }
-                None => {
-                    nih_debug_assert_eq!(output_slices.len(), 0);
-
-                    // Same as above
-                    output_slices.fill_with(|| &mut [])
-                }
-            }
-        });
+            });
+        }
 
         // Since NIH-plug processes audio in-place, main input data needs to be copied to the main
         // output buffers
@@ -220,37 +225,41 @@ impl BufferManager {
             self.main_input_channel_pointers,
             self.main_output_channel_pointers,
         ) {
-            self.main_buffer.set_slices(num_samples, |output_slices| {
-                for (channel_idx, output_slice) in output_slices
-                    .iter_mut()
-                    .enumerate()
-                    .take(input_channel_pointers.num_channels)
-                {
-                    let input_channel_pointer =
-                        *input_channel_pointers.ptrs.as_ptr().add(channel_idx);
-                    debug_assert!(channel_idx < output_channel_pointers.num_channels);
-                    let output_channel_pointer =
-                        *output_channel_pointers.ptrs.as_ptr().add(channel_idx);
+            unsafe {
+                self.main_buffer.set_slices(num_samples, |output_slices| {
+                    for (channel_idx, output_slice) in output_slices
+                        .iter_mut()
+                        .enumerate()
+                        .take(input_channel_pointers.num_channels)
+                    {
+                        let input_channel_pointer =
+                            *input_channel_pointers.ptrs.as_ptr().add(channel_idx);
+                        debug_assert!(channel_idx < output_channel_pointers.num_channels);
+                        let output_channel_pointer =
+                            *output_channel_pointers.ptrs.as_ptr().add(channel_idx);
 
-                    // If the host processes the main IO out of place then the inputs need to be
-                    // copied to the output buffers. Otherwise the input should already be there.
-                    if input_channel_pointer != output_channel_pointer {
-                        output_slice.copy_from_slice(std::slice::from_raw_parts_mut(
-                            input_channel_pointer.add(sample_offset),
-                            num_samples,
-                        ))
+                        // If the host processes the main IO out of place then the inputs need to be
+                        // copied to the output buffers. Otherwise the input should already be there.
+                        if input_channel_pointer != output_channel_pointer {
+                            output_slice.copy_from_slice(std::slice::from_raw_parts_mut(
+                                input_channel_pointer.add(sample_offset),
+                                num_samples,
+                            ))
+                        }
                     }
-                }
-            });
+                });
+            }
 
             // Any excess channels will need to be filled with zeroes since they'd otherwise point
             // to whatever was left in the buffer
             if input_channel_pointers.num_channels < output_channel_pointers.num_channels {
-                self.main_buffer.set_slices(num_samples, |output_slices| {
-                    for slice in &mut output_slices[input_channel_pointers.num_channels..] {
-                        slice.fill(0.0);
-                    }
-                });
+                unsafe {
+                    self.main_buffer.set_slices(num_samples, |output_slices| {
+                        for slice in &mut output_slices[input_channel_pointers.num_channels..] {
+                            slice.fill(0.0);
+                        }
+                    });
+                }
             }
         }
 
@@ -276,14 +285,16 @@ impl BufferManager {
                         .take(input_channel_pointers.num_channels)
                     {
                         let input_channel_pointer =
-                            input_channel_pointers.ptrs.as_ptr().add(channel_idx);
+                            unsafe { input_channel_pointers.ptrs.as_ptr().add(channel_idx) };
 
                         nih_debug_assert!(num_samples <= channel.capacity());
                         channel.resize(num_samples, 0.0);
-                        channel.copy_from_slice(std::slice::from_raw_parts_mut(
-                            (*input_channel_pointer).add(sample_offset),
-                            num_samples,
-                        ))
+                        channel.copy_from_slice(unsafe {
+                            std::slice::from_raw_parts_mut(
+                                (*input_channel_pointer).add(sample_offset),
+                                num_samples,
+                            )
+                        })
                     }
 
                     // In case we were provided too few channels we'll fill the rest with zeroes to
@@ -301,19 +312,20 @@ impl BufferManager {
                     }
                 }
             }
+            unsafe {
+                input_buffer.set_slices(num_samples, |input_slices| {
+                    // Since we initialized both `input_buffer` and `input_storage` this invariant
+                    // should never fail unless we made an error ourselves
+                    debug_assert_eq!(input_slices.len(), input_storage.len());
 
-            input_buffer.set_slices(num_samples, |input_slices| {
-                // Since we initialized both `input_buffer` and `input_storage` this invariant
-                // should never fail unless we made an error ourselves
-                debug_assert_eq!(input_slices.len(), input_storage.len());
-
-                for (channel_slice, channel_storage) in
-                    input_slices.iter_mut().zip(input_storage.iter_mut())
-                {
-                    // SAFETY: `channel_storage` is no longer used accessed directly after this
-                    *channel_slice = &mut *(channel_storage.as_mut_slice() as *mut [f32]);
-                }
-            });
+                    for (channel_slice, channel_storage) in
+                        input_slices.iter_mut().zip(input_storage.iter_mut())
+                    {
+                        // SAFETY: `channel_storage` is no longer used accessed directly after this
+                        *channel_slice = &mut *(channel_storage.as_mut_slice() as *mut [f32]);
+                    }
+                });
+            }
         }
 
         // The auxiliary output buffers can point directly to the host's buffers. This logic is the
@@ -323,60 +335,65 @@ impl BufferManager {
             .iter()
             .zip(self.aux_output_buffers.iter_mut())
         {
-            output_buffer.set_slices(num_samples, |output_slices| {
-                match output_channel_pointers {
-                    Some(output_channel_pointers) => {
-                        nih_debug_assert_eq!(
-                            output_slices.len(),
-                            output_channel_pointers.num_channels
-                        );
-                        for (channel_idx, output_slice) in output_slices
-                            .iter_mut()
-                            .enumerate()
-                            .take(output_channel_pointers.num_channels)
-                        {
-                            let output_channel_pointer =
-                                output_channel_pointers.ptrs.as_ptr().add(channel_idx);
-
-                            *output_slice = std::slice::from_raw_parts_mut(
-                                (*output_channel_pointer).add(sample_offset),
-                                num_samples,
+            unsafe {
+                output_buffer.set_slices(num_samples, |output_slices| {
+                    match output_channel_pointers {
+                        Some(output_channel_pointers) => {
+                            nih_debug_assert_eq!(
+                                output_slices.len(),
+                                output_channel_pointers.num_channels
                             );
+                            for (channel_idx, output_slice) in output_slices
+                                .iter_mut()
+                                .enumerate()
+                                .take(output_channel_pointers.num_channels)
+                            {
+                                let output_channel_pointer =
+                                    output_channel_pointers.ptrs.as_ptr().add(channel_idx);
 
-                            // The host may not zero out the buffers, and assume the plugin always
-                            // write something there
-                            output_slice.fill(0.0);
+                                *output_slice = std::slice::from_raw_parts_mut(
+                                    (*output_channel_pointer).add(sample_offset),
+                                    num_samples,
+                                );
+
+                                // The host may not zero out the buffers, and assume the plugin always
+                                // write something there
+                                output_slice.fill(0.0);
+                            }
+
+                            // If the caller/host should have provided buffer pointers but didn't then
+                            // we must get rid of any dangling slices
+                            output_slices[output_channel_pointers.num_channels..]
+                                .fill_with(|| &mut [])
                         }
+                        None => {
+                            nih_debug_assert_eq!(output_slices.len(), 0);
 
-                        // If the caller/host should have provided buffer pointers but didn't then
-                        // we must get rid of any dangling slices
-                        output_slices[output_channel_pointers.num_channels..].fill_with(|| &mut [])
+                            // Same as above
+                            output_slices.fill_with(|| &mut [])
+                        }
                     }
-                    None => {
-                        nih_debug_assert_eq!(output_slices.len(), 0);
-
-                        // Same as above
-                        output_slices.fill_with(|| &mut [])
-                    }
-                }
-            });
+                });
+            }
         }
 
         // SAFETY: The 'static lifetimes on the objects are needed so we can store the buffers.
         //         Their actual lifetimes are `'a`, so we need to shrink them here. The contents are
         //         valid for as long as the returned object is borrowed.
-        std::mem::transmute::<Buffers<'a, 'static>, Buffers<'a, 'buffer>>(Buffers {
-            main_buffer: &mut self.main_buffer,
-            aux_inputs: &mut self.aux_input_buffers,
-            aux_outputs: &mut self.aux_output_buffers,
-        })
+        unsafe {
+            std::mem::transmute::<Buffers<'a, 'static>, Buffers<'a, 'buffer>>(Buffers {
+                main_buffer: &mut self.main_buffer,
+                aux_inputs: &mut self.aux_input_buffers,
+                aux_outputs: &mut self.aux_output_buffers,
+            })
+        }
     }
 }
 
 #[cfg(any(miri, test))]
 mod miri {
     use super::*;
-    use crate::prelude::{new_nonzero_u32, PortNames};
+    use crate::prelude::{PortNames, new_nonzero_u32};
 
     const BUFFER_SIZE: usize = 512;
     const NUM_MAIN_INPUT_CHANNELS: usize = 1;

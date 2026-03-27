@@ -1,5 +1,7 @@
 # Crisp
 
+> TODO: Create a new GUI for this plugin, or just make this a GUI-less plugin.
+
 This plugin adds a bright crispy top end to low bass sounds. The effect was
 inspired by Polarity's [Fake Distortion](https://youtu.be/MKfFn4L1zeg) video.
 

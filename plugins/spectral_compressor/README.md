@@ -1,5 +1,8 @@
 # Spectral Compressor
 
+> TODO: Create a new GUI for this plugin, or just remove this plugin from this
+> repository and point users to the original repository if they want it.
+
 Have you ever wondered what a 16384 band OTT would sound like? Neither have I.
 Spectral Compressor can squash anything into pink noise, apply simultaneous
 upwards and downwards compressor to dynamically match the sidechain signal's

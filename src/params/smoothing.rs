@@ -1,7 +1,7 @@
 //! Utilities to handle smoothing parameter changes over time.
 
-use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicI32, Ordering};
 
 // Re-exported here because it's sued in `SmoothingStyle`.
 pub use atomic_float::AtomicF32;

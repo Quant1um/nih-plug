@@ -1,14 +1,14 @@
 use atomic_float::AtomicF32;
 use parking_lot::{Mutex, RwLock};
 use std::any::Any;
-use std::ffi::{c_void, CStr};
+use std::ffi::{CStr, c_void};
 use std::mem;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
-use vst3_sys::base::{kInvalidArgument, kNotImplemented, kResultFalse, kResultOk, tresult, TBool};
+use std::sync::atomic::Ordering;
+use vst3_sys::VST3;
+use vst3_sys::base::{TBool, kInvalidArgument, kNotImplemented, kResultFalse, kResultOk, tresult};
 use vst3_sys::gui::{IPlugFrame, IPlugView, IPlugViewContentScaleSupport, ViewRect};
 use vst3_sys::utils::SharedVstPtr;
-use vst3_sys::VST3;
 
 use super::inner::{Task, WrapperInner};
 use super::util::{ObjectPtr, VstPtr};
@@ -144,8 +144,8 @@ impl<P: Vst3Plugin> WrapperView<P> {
                 // The argument types are a bit wonky here because you can't construct a
                 // `SharedVstPtr`. This _should_ work however.
                 let plug_view: SharedVstPtr<dyn IPlugView> =
-                    mem::transmute(&self.__iplugviewvptr as *const *const _);
-                let result = plug_frame.resize_view(plug_view, &mut size);
+                    unsafe { mem::transmute(&self.__iplugviewvptr as *const *const _) };
+                let result = unsafe { plug_frame.resize_view(plug_view, &mut size) };
 
                 debug_assert_eq!(
                     result, kResultOk,
@@ -247,7 +247,7 @@ impl<P: Vst3Plugin> RunLoopEventHandler<P> {
 impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
     #[cfg(all(target_family = "unix", not(target_os = "macos")))]
     unsafe fn is_platform_type_supported(&self, type_: vst3_sys::base::FIDString) -> tresult {
-        let type_ = CStr::from_ptr(type_);
+        let type_ = unsafe { CStr::from_ptr(type_) };
         match type_.to_str() {
             Ok(type_) if type_ == VST3_PLATFORM_X11_WINDOW => kResultOk,
             _ => {
@@ -259,7 +259,7 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
 
     #[cfg(target_os = "macos")]
     unsafe fn is_platform_type_supported(&self, type_: vst3_sys::base::FIDString) -> tresult {
-        let type_ = CStr::from_ptr(type_);
+        let type_ = unsafe { CStr::from_ptr(type_) };
         match type_.to_str() {
             Ok(type_) if type_ == VST3_PLATFORM_NSVIEW => kResultOk,
             _ => {
@@ -271,7 +271,7 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
 
     #[cfg(target_os = "windows")]
     unsafe fn is_platform_type_supported(&self, type_: vst3_sys::base::FIDString) -> tresult {
-        let type_ = CStr::from_ptr(type_);
+        let type_ = unsafe { CStr::from_ptr(type_) };
         match type_.to_str() {
             Ok(type_) if type_ == VST3_PLATFORM_HWND => kResultOk,
             _ => {
@@ -284,7 +284,7 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
     unsafe fn attached(&self, parent: *mut c_void, type_: vst3_sys::base::FIDString) -> tresult {
         let mut editor_handle = self.editor_handle.write();
         if editor_handle.is_none() {
-            let type_ = CStr::from_ptr(type_);
+            let type_ = unsafe { CStr::from_ptr(type_) };
             let parent_handle = match type_.to_str() {
                 Ok(type_) if type_ == VST3_PLATFORM_X11_WINDOW => {
                     ParentWindowHandle::X11Window(parent as usize as u32)
@@ -357,14 +357,14 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
     unsafe fn get_size(&self, size: *mut ViewRect) -> tresult {
         check_null_ptr!(size);
 
-        *size = mem::zeroed();
+        unsafe { *size = mem::zeroed() };
 
         // TODO: This is technically incorrect during resizing, this should still report the old
         //       size until `.on_size()` has been called. We should probably only bother fixing this
         //       if it turns out to be an issue.
         let (unscaled_width, unscaled_height) = self.editor.lock().size();
         let scaling_factor = self.scaling_factor.load(Ordering::Relaxed);
-        let size = &mut *size;
+        let size = unsafe { &mut *size };
         size.left = 0;
         size.right = (unscaled_width as f32 * scaling_factor).round() as i32;
         size.top = 0;
@@ -384,8 +384,8 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
             (unscaled_height as f32 * scaling_factor).round() as i32,
         );
 
-        let width = (*new_size).right - (*new_size).left;
-        let height = (*new_size).bottom - (*new_size).top;
+        let width = unsafe { (*new_size).right - (*new_size).left };
+        let height = unsafe { (*new_size).bottom - (*new_size).top };
         if width == editor_width && height == editor_height {
             kResultOk
         } else {
@@ -399,7 +399,7 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
 
     unsafe fn set_frame(&self, frame: *mut c_void) -> tresult {
         // The correct argument type is missing from the bindings
-        let frame: SharedVstPtr<dyn IPlugFrame> = mem::transmute(frame);
+        let frame: SharedVstPtr<dyn IPlugFrame> = unsafe { mem::transmute(frame) };
         match frame.upgrade() {
             Some(frame) => {
                 // On Linux the host will expose another interface that lets us run code on the
@@ -433,10 +433,12 @@ impl<P: Vst3Plugin> IPlugView for WrapperView<P> {
         check_null_ptr!(rect);
 
         // TODO: Implement Host->Plugin resizing
-        if (*rect).right - (*rect).left > 0 && (*rect).bottom - (*rect).top > 0 {
-            kResultOk
-        } else {
-            kResultFalse
+        unsafe {
+            if (*rect).right - (*rect).left > 0 && (*rect).bottom - (*rect).top > 0 {
+                kResultOk
+            } else {
+                kResultFalse
+            }
         }
     }
 }
@@ -479,11 +481,13 @@ impl<P: Vst3Plugin> IEventHandler for RunLoopEventHandler<P> {
         // `self.tasks()` is already empty.
         let mut notify_value = [0; 32];
         loop {
-            let read_result = libc::read(
-                self.socket_read_fd,
-                &mut notify_value as *mut _ as *mut c_void,
-                std::mem::size_of_val(&notify_value),
-            );
+            let read_result = unsafe {
+                libc::read(
+                    self.socket_read_fd,
+                    &mut notify_value as *mut _ as *mut c_void,
+                    std::mem::size_of_val(&notify_value),
+                )
+            };
 
             // If after the first loop the socket contains no more data, then the `read()` call will
             // return -1 and `errno` will have been set to `EAGAIN`

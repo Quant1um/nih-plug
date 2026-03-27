@@ -6,8 +6,8 @@ use parking_lot::Mutex;
 use raw_window_handle::HasRawWindowHandle;
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
-use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::thread;
 
 use super::backend::Backend;
@@ -342,6 +342,7 @@ impl<P: Plugin, B: Backend<P>> Wrapper<P, B> {
                             height: height as f64,
                         },
                         scale: scaling_policy,
+                        #[cfg(feature = "standalone-opengl")]
                         gl_config: None,
                     },
                     move |window| {

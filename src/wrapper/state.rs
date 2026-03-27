@@ -89,33 +89,35 @@ pub(crate) unsafe fn serialize_object<'a, P: Plugin>(
     // We'll serialize parameter values as a simple `string_param_id: display_value` map.
     // NOTE: If the plugin is being modulated (and the plugin is a CLAP plugin in Bitwig Studio),
     //       then this should save the values without any modulation applied to it
-    let params: BTreeMap<_, _> = params_iter
-        .into_iter()
-        .map(|(param_id_str, param_ptr)| match param_ptr {
-            ParamPtr::FloatParam(p) => (
-                param_id_str.clone(),
-                ParamValue::F32((*p).unmodulated_plain_value()),
-            ),
-            ParamPtr::IntParam(p) => (
-                param_id_str.clone(),
-                ParamValue::I32((*p).unmodulated_plain_value()),
-            ),
-            ParamPtr::BoolParam(p) => (
-                param_id_str.clone(),
-                ParamValue::Bool((*p).unmodulated_plain_value()),
-            ),
-            ParamPtr::EnumParam(p) => (
-                // Enums are either serialized based on the active variant's index (which may not be
-                // the same as the discriminator), or a custom set stable string ID. The latter
-                // allows the variants to be reordered.
-                param_id_str.clone(),
-                match (*p).unmodulated_plain_id() {
-                    Some(id) => ParamValue::String(id.to_owned()),
-                    None => ParamValue::I32((*p).unmodulated_plain_value()),
-                },
-            ),
-        })
-        .collect();
+    let params: BTreeMap<_, _> = unsafe {
+        params_iter
+            .into_iter()
+            .map(|(param_id_str, param_ptr)| match param_ptr {
+                ParamPtr::FloatParam(p) => (
+                    param_id_str.clone(),
+                    ParamValue::F32((*p).unmodulated_plain_value()),
+                ),
+                ParamPtr::IntParam(p) => (
+                    param_id_str.clone(),
+                    ParamValue::I32((*p).unmodulated_plain_value()),
+                ),
+                ParamPtr::BoolParam(p) => (
+                    param_id_str.clone(),
+                    ParamValue::Bool((*p).unmodulated_plain_value()),
+                ),
+                ParamPtr::EnumParam(p) => (
+                    // Enums are either serialized based on the active variant's index (which may not be
+                    // the same as the discriminator), or a custom set stable string ID. The latter
+                    // allows the variants to be reordered.
+                    param_id_str.clone(),
+                    match (*p).unmodulated_plain_id() {
+                        Some(id) => ParamValue::String(id.to_owned()),
+                        None => ParamValue::I32((*p).unmodulated_plain_value()),
+                    },
+                ),
+            })
+            .collect()
+    };
 
     // The plugin can also persist arbitrary fields alongside its parameters. This is useful for
     // storing things like sample data.
@@ -135,7 +137,7 @@ pub(crate) unsafe fn serialize_json<'a, P: Plugin>(
     plugin_params: Arc<dyn Params>,
     params_iter: impl IntoIterator<Item = (&'a String, ParamPtr)>,
 ) -> Result<Vec<u8>> {
-    let plugin_state = serialize_object::<P>(plugin_params, params_iter);
+    let plugin_state = unsafe { serialize_object::<P>(plugin_params, params_iter) };
     let json = serde_json::to_vec(&plugin_state).context("Could not format as JSON")?;
 
     #[cfg(feature = "zstd")]
@@ -190,44 +192,46 @@ pub(crate) unsafe fn deserialize_object<P: Plugin>(
             }
         };
 
-        match (param_ptr, param_value) {
-            (ParamPtr::FloatParam(p), ParamValue::F32(v)) => {
-                (*p).set_plain_value(*v);
-            }
-            (ParamPtr::IntParam(p), ParamValue::I32(v)) => {
-                (*p).set_plain_value(*v);
-            }
-            (ParamPtr::BoolParam(p), ParamValue::Bool(v)) => {
-                (*p).set_plain_value(*v);
-            }
-            // Enums are either serialized based on the active variant's index (which may not be the
-            // same as the discriminator), or a custom set stable string ID. The latter allows the
-            // variants to be reordered.
-            (ParamPtr::EnumParam(p), ParamValue::I32(variant_idx)) => {
-                (*p).set_plain_value(*variant_idx);
-            }
-            (ParamPtr::EnumParam(p), ParamValue::String(id)) => {
-                let deserialized_enum = (*p).set_from_id(id);
-                nih_debug_assert!(
-                    deserialized_enum,
-                    "Unknown ID {:?} for enum parameter \"{}\"",
-                    id,
-                    param_id_str,
-                );
-            }
-            (param_ptr, param_value) => {
-                nih_debug_assert_failure!(
-                    "Invalid serialized value {:?} for parameter \"{}\" ({:?})",
-                    param_value,
-                    param_id_str,
-                    param_ptr,
-                );
+        unsafe {
+            match (param_ptr, param_value) {
+                (ParamPtr::FloatParam(p), ParamValue::F32(v)) => {
+                    (*p).set_plain_value(*v);
+                }
+                (ParamPtr::IntParam(p), ParamValue::I32(v)) => {
+                    (*p).set_plain_value(*v);
+                }
+                (ParamPtr::BoolParam(p), ParamValue::Bool(v)) => {
+                    (*p).set_plain_value(*v);
+                }
+                // Enums are either serialized based on the active variant's index (which may not be the
+                // same as the discriminator), or a custom set stable string ID. The latter allows the
+                // variants to be reordered.
+                (ParamPtr::EnumParam(p), ParamValue::I32(variant_idx)) => {
+                    (*p).set_plain_value(*variant_idx);
+                }
+                (ParamPtr::EnumParam(p), ParamValue::String(id)) => {
+                    let deserialized_enum = (*p).set_from_id(id);
+                    nih_debug_assert!(
+                        deserialized_enum,
+                        "Unknown ID {:?} for enum parameter \"{}\"",
+                        id,
+                        param_id_str,
+                    );
+                }
+                (param_ptr, param_value) => {
+                    nih_debug_assert_failure!(
+                        "Invalid serialized value {:?} for parameter \"{}\" ({:?})",
+                        param_value,
+                        param_id_str,
+                        param_ptr,
+                    );
+                }
             }
         }
 
         // Make sure everything starts out in sync
         if let Some(sample_rate) = sample_rate {
-            param_ptr.update_smoother(sample_rate, true);
+            unsafe { param_ptr.update_smoother(sample_rate, true) };
         }
     }
 

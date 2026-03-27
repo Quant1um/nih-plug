@@ -18,8 +18,8 @@ use realfft::num_complex::Complex32;
 use realfft::{ComplexToReal, RealToComplex};
 use std::f32;
 
-use crate::crossover::iir::biquad::{Biquad, BiquadCoefficients};
 use crate::NUM_CHANNELS;
+use crate::crossover::iir::biquad::{Biquad, BiquadCoefficients};
 
 /// We're doing FFT convolution here since otherwise there's no way to get decent low-frequency
 /// accuracy while still having acceptable performance. The input going into the STFT will be

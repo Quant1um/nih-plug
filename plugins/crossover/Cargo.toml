@@ -1,10 +1,11 @@
 [package]
 name = "crossover"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
 authors = ["Robbert van der Helm <mail@robbertvanderhelm.nl>"]
 license = "GPL-3.0-or-later"
 homepage = "https://github.com/robbert-vdh/nih-plug/tree/master/plugins/crossover"
+publish = false
 
 [lib]
 crate-type = ["cdylib"]
@@ -16,5 +17,5 @@ default = ["simd"]
 simd = ["nih_plug/simd"]
 
 [dependencies]
-nih_plug = { path = "../../", features = ["assert_process_allocs"] }
-realfft = "3.0.0"
+nih_plug = { path = "../../", features = ["assert_process_allocs", "unsafe_flush_denormals"] }
+realfft.workspace = true

@@ -3,26 +3,26 @@ use std::ffi::c_void;
 use std::mem::{self, MaybeUninit};
 use std::num::NonZeroU32;
 use std::ptr::NonNull;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use vst3_com::vst::{DataEvent, IProcessContextRequirementsFlags, ProcessModes};
-use vst3_sys::base::{kInvalidArgument, kNoInterface, kResultFalse, kResultOk, tresult, TBool};
+use vst3_sys::VST3;
 use vst3_sys::base::{IBStream, IPluginBase};
+use vst3_sys::base::{TBool, kInvalidArgument, kNoInterface, kResultFalse, kResultOk, tresult};
 use vst3_sys::utils::SharedVstPtr;
 use vst3_sys::vst::{
-    kNoParamId, kNoParentUnitId, kNoProgramListId, kRootUnitId, Event, EventTypes, IAudioProcessor,
-    IComponent, IEditController, IEventList, IMidiMapping, INoteExpressionController,
-    IParamValueQueue, IParameterChanges, IProcessContextRequirements, IUnitInfo,
-    LegacyMidiCCOutEvent, NoteExpressionTypeInfo, NoteExpressionValueDescription, NoteOffEvent,
-    NoteOnEvent, ParameterFlags, PolyPressureEvent, ProgramListInfo, TChar, UnitInfo,
+    Event, EventTypes, IAudioProcessor, IComponent, IEditController, IEventList, IMidiMapping,
+    INoteExpressionController, IParamValueQueue, IParameterChanges, IProcessContextRequirements,
+    IUnitInfo, LegacyMidiCCOutEvent, NoteExpressionTypeInfo, NoteExpressionValueDescription,
+    NoteOffEvent, NoteOnEvent, ParameterFlags, PolyPressureEvent, ProgramListInfo, TChar, UnitInfo,
+    kNoParamId, kNoParentUnitId, kNoProgramListId, kRootUnitId,
 };
-use vst3_sys::VST3;
 use widestring::U16CStr;
 
 use super::inner::{ProcessEvent, WrapperInner};
 use super::note_expressions::{self, NoteExpressionController};
 use super::util::{
-    u16strlcpy, VstPtr, VST3_MIDI_CCS, VST3_MIDI_NUM_PARAMS, VST3_MIDI_PARAMS_START,
+    VST3_MIDI_CCS, VST3_MIDI_NUM_PARAMS, VST3_MIDI_PARAMS_START, VstPtr, u16strlcpy,
 };
 use super::util::{VST3_MIDI_CHANNELS, VST3_MIDI_PARAMS_END};
 use super::view::WrapperView;
@@ -152,9 +152,9 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
                 if t == vst3_sys::vst::MediaTypes::kAudio as i32
                     && d == vst3_sys::vst::BusDirections::kInput as i32 =>
             {
-                *info = mem::zeroed();
+                unsafe { *info = mem::zeroed() };
 
-                let info = &mut *info;
+                let info = unsafe { &mut *info };
                 info.media_type = vst3_sys::vst::MediaTypes::kAudio as i32;
                 info.direction = dir;
                 info.flags = vst3_sys::vst::BusFlags::kDefaultActive as u32;
@@ -189,9 +189,9 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
                 if t == vst3_sys::vst::MediaTypes::kAudio as i32
                     && d == vst3_sys::vst::BusDirections::kOutput as i32 =>
             {
-                *info = mem::zeroed();
+                unsafe { *info = mem::zeroed() };
 
-                let info = &mut *info;
+                let info = unsafe { &mut *info };
                 info.media_type = vst3_sys::vst::MediaTypes::kAudio as i32;
                 info.direction = dir;
                 info.flags = vst3_sys::vst::BusFlags::kDefaultActive as u32;
@@ -231,9 +231,9 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
                     && d == vst3_sys::vst::BusDirections::kInput as i32
                     && P::MIDI_INPUT >= MidiConfig::Basic =>
             {
-                *info = mem::zeroed();
+                unsafe { *info = mem::zeroed() };
 
-                let info = &mut *info;
+                let info = unsafe { &mut *info };
                 info.media_type = vst3_sys::vst::MediaTypes::kEvent as i32;
                 info.direction = vst3_sys::vst::BusDirections::kInput as i32;
                 info.channel_count = 16;
@@ -247,9 +247,9 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
                     && d == vst3_sys::vst::BusDirections::kOutput as i32
                     && P::MIDI_OUTPUT >= MidiConfig::Basic =>
             {
-                *info = mem::zeroed();
+                unsafe { *info = mem::zeroed() };
 
-                let info = &mut *info;
+                let info = unsafe { &mut *info };
                 info.media_type = vst3_sys::vst::MediaTypes::kEvent as i32;
                 info.direction = vst3_sys::vst::BusDirections::kOutput as i32;
                 info.channel_count = 16;
@@ -271,10 +271,10 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
 
         let current_audio_io_layout = self.inner.current_audio_io_layout.load();
 
-        *out_info = mem::zeroed();
+        unsafe { *out_info = mem::zeroed() };
 
-        let in_info = &*in_info;
-        let out_info = &mut *out_info;
+        let in_info = unsafe { &*in_info };
+        let out_info = unsafe { &mut *out_info };
         match (in_info.media_type, in_info.bus_index) {
             (t, 0)
                 if t == vst3_sys::vst::MediaTypes::kAudio as i32
@@ -375,7 +375,7 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
             (true, Some(buffer_config)) => {
                 // Before initializing the plugin, make sure all smoothers are set the the default values
                 for param in self.inner.param_by_hash.values() {
-                    param.update_smoother(buffer_config.sample_rate, true);
+                    unsafe { param.update_smoother(buffer_config.sample_rate, true) };
                 }
 
                 // NOTE: This needs to be dropped after the `plugin` lock to avoid deadlocks
@@ -419,14 +419,15 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
         // while some other hosts don't expose that to the plugin.
         let mut current_pos = 0;
         let mut eof_pos = 0;
-        if state.tell(&mut current_pos) != kResultOk
-            || state.seek(0, vst3_sys::base::kIBSeekEnd, &mut eof_pos) != kResultOk
-            || state.seek(
-                current_pos,
-                vst3_sys::base::kIBSeekSet,
-                std::ptr::null_mut(),
-            ) != kResultOk
-        {
+        if unsafe {
+            state.tell(&mut current_pos) != kResultOk
+                || state.seek(0, vst3_sys::base::kIBSeekEnd, &mut eof_pos) != kResultOk
+                || state.seek(
+                    current_pos,
+                    vst3_sys::base::kIBSeekSet,
+                    std::ptr::null_mut(),
+                ) != kResultOk
+        } {
             nih_debug_assert_failure!("Could not get the stream length");
             return kResultFalse;
         }
@@ -434,12 +435,14 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
         let stream_byte_size = (eof_pos - current_pos) as i32;
         let mut num_bytes_read = 0;
         let mut read_buffer: Vec<u8> = Vec::with_capacity(stream_byte_size as usize);
-        state.read(
-            read_buffer.as_mut_ptr() as *mut c_void,
-            read_buffer.capacity() as i32,
-            &mut num_bytes_read,
-        );
-        read_buffer.set_len(num_bytes_read as usize);
+        unsafe {
+            state.read(
+                read_buffer.as_mut_ptr() as *mut c_void,
+                read_buffer.capacity() as i32,
+                &mut num_bytes_read,
+            );
+            read_buffer.set_len(num_bytes_read as usize);
+        }
 
         // If the size is zero, some hosts will always return `kResultFalse` even if the read was
         // 'successful', so we can't check the return value but we can check the number of bytes
@@ -449,7 +452,7 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
             return kResultFalse;
         }
 
-        match state::deserialize_json(&read_buffer) {
+        match unsafe { state::deserialize_json(&read_buffer) } {
             Some(mut state) => {
                 if self.inner.set_state_inner(&mut state) {
                     nih_trace!("Loaded state ({} bytes)", read_buffer.len());
@@ -467,18 +470,22 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
 
         let state = state.upgrade().unwrap();
 
-        let serialized = state::serialize_json::<P>(
-            self.inner.params.clone(),
-            state::make_params_iter(&self.inner.param_by_hash, &self.inner.param_id_to_hash),
-        );
+        let serialized = unsafe {
+            state::serialize_json::<P>(
+                self.inner.params.clone(),
+                state::make_params_iter(&self.inner.param_by_hash, &self.inner.param_id_to_hash),
+            )
+        };
         match serialized {
             Ok(serialized) => {
                 let mut num_bytes_written = 0;
-                let result = state.write(
-                    serialized.as_ptr() as *const c_void,
-                    serialized.len() as i32,
-                    &mut num_bytes_written,
-                );
+                let result = unsafe {
+                    state.write(
+                        serialized.as_ptr() as *const c_void,
+                        serialized.len() as i32,
+                        &mut num_bytes_written,
+                    )
+                };
 
                 nih_debug_assert_eq!(result, kResultOk);
                 nih_debug_assert_eq!(num_bytes_written as usize, serialized.len());
@@ -529,12 +536,12 @@ impl<P: Vst3Plugin> IEditController for Wrapper<P> {
     ) -> tresult {
         check_null_ptr!(info);
 
-        if param_index < 0 || param_index > self.get_parameter_count() {
+        if param_index < 0 || param_index > unsafe { self.get_parameter_count() } {
             return kInvalidArgument;
         }
 
-        *info = std::mem::zeroed();
-        let info = &mut *info;
+        unsafe { *info = std::mem::zeroed() };
+        let info = unsafe { &mut *info };
 
         // If the parameter is a generated MIDI CC/channel pressure/pitch bend then it needs to be
         // handled separately
@@ -564,17 +571,17 @@ impl<P: Vst3Plugin> IEditController for Wrapper<P> {
                 .get_vst3_unit_id(*param_hash)
                 .expect("Inconsistent parameter data");
             let param_ptr = &self.inner.param_by_hash[param_hash];
-            let default_value = param_ptr.default_normalized_value();
-            let flags = param_ptr.flags();
+            let default_value = unsafe { param_ptr.default_normalized_value() };
+            let flags = unsafe { param_ptr.flags() };
             let automatable = !flags.contains(ParamFlags::NON_AUTOMATABLE);
             let hidden = flags.contains(ParamFlags::HIDDEN);
             let is_bypass = flags.contains(ParamFlags::BYPASS);
 
             info.id = *param_hash;
-            u16strlcpy(&mut info.title, param_ptr.name());
-            u16strlcpy(&mut info.short_title, param_ptr.name());
-            u16strlcpy(&mut info.units, param_ptr.unit());
-            info.step_count = param_ptr.step_count().unwrap_or(0) as i32;
+            u16strlcpy(&mut info.title, unsafe { param_ptr.name() });
+            u16strlcpy(&mut info.short_title, unsafe { param_ptr.name() });
+            u16strlcpy(&mut info.units, unsafe { param_ptr.unit() });
+            info.step_count = unsafe { param_ptr.step_count() }.unwrap_or(0) as i32;
             info.default_normalized_value = default_value as f64;
             info.unit_id = *param_unit;
             info.flags = 0;
@@ -600,16 +607,18 @@ impl<P: Vst3Plugin> IEditController for Wrapper<P> {
     ) -> tresult {
         check_null_ptr!(string);
 
-        let dest = &mut *(string as *mut [TChar; 128]);
+        let dest = unsafe { &mut *(string as *mut [TChar; 128]) };
 
         // TODO: We don't implement these methods at all for our generated MIDI CC parameters,
         //       should be fine right? They should be hidden anyways.
         match self.inner.param_by_hash.get(&id) {
             Some(param_ptr) => {
-                u16strlcpy(
-                    dest,
-                    &param_ptr.normalized_value_to_string(value_normalized as f32, false),
-                );
+                unsafe {
+                    u16strlcpy(
+                        dest,
+                        &param_ptr.normalized_value_to_string(value_normalized as f32, false),
+                    );
+                }
 
                 kResultOk
             }
@@ -625,18 +634,18 @@ impl<P: Vst3Plugin> IEditController for Wrapper<P> {
     ) -> tresult {
         check_null_ptr!(string, value_normalized);
 
-        let string = match U16CStr::from_ptr_str(string as *const u16).to_string() {
+        let string = match unsafe { U16CStr::from_ptr_str(string as *const u16).to_string() } {
             Ok(s) => s,
             Err(_) => return kInvalidArgument,
         };
 
         match self.inner.param_by_hash.get(&id) {
             Some(param_ptr) => {
-                let value = match param_ptr.string_to_normalized_value(&string) {
+                let value = match unsafe { param_ptr.string_to_normalized_value(&string) } {
                     Some(v) => v as f64,
                     None => return kResultFalse,
                 };
-                *value_normalized = value;
+                unsafe { *value_normalized = value };
 
                 kResultOk
             }
@@ -646,21 +655,21 @@ impl<P: Vst3Plugin> IEditController for Wrapper<P> {
 
     unsafe fn normalized_param_to_plain(&self, id: u32, value_normalized: f64) -> f64 {
         match self.inner.param_by_hash.get(&id) {
-            Some(param_ptr) => param_ptr.preview_plain(value_normalized as f32) as f64,
+            Some(param_ptr) => unsafe { param_ptr.preview_plain(value_normalized as f32) as f64 },
             _ => value_normalized,
         }
     }
 
     unsafe fn plain_param_to_normalized(&self, id: u32, plain_value: f64) -> f64 {
         match self.inner.param_by_hash.get(&id) {
-            Some(param_ptr) => param_ptr.preview_normalized(plain_value as f32) as f64,
+            Some(param_ptr) => unsafe { param_ptr.preview_normalized(plain_value as f32) as f64 },
             _ => plain_value,
         }
     }
 
     unsafe fn get_param_normalized(&self, id: u32) -> f64 {
         match self.inner.param_by_hash.get(&id) {
-            Some(param_ptr) => param_ptr.modulated_normalized_value() as f64,
+            Some(param_ptr) => unsafe { param_ptr.modulated_normalized_value() as f64 },
             _ => 0.5,
         }
     }
@@ -743,32 +752,37 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                 let has_main_input = layout.main_input_channels.is_some();
                 let aux_input_start_idx = if has_main_input { 0 } else { 1 };
                 if has_main_input
-                    && (*inputs).count_ones() != layout.main_input_channels.unwrap().get()
+                    && unsafe {
+                        (*inputs).count_ones() != layout.main_input_channels.unwrap().get()
+                    }
                 {
                     return false;
                 }
                 for (aux_input_idx, channel_count) in layout.aux_input_ports.iter().enumerate() {
-                    if (*inputs.add(aux_input_idx + aux_input_start_idx)).count_ones()
-                        != channel_count.get()
-                    {
+                    if unsafe {
+                        (*inputs.add(aux_input_idx + aux_input_start_idx)).count_ones()
+                            != channel_count.get()
+                    } {
                         return false;
                     }
                 }
 
                 let has_main_output = layout.main_output_channels.is_some();
                 let aux_output_start_idx = if has_main_output { 0 } else { 1 };
-                if (*outputs).count_ones()
-                    != layout
-                        .main_output_channels
-                        .map(NonZeroU32::get)
-                        .unwrap_or_default()
-                {
+                if unsafe {
+                    (*outputs).count_ones()
+                        != layout
+                            .main_output_channels
+                            .map(NonZeroU32::get)
+                            .unwrap_or_default()
+                } {
                     return false;
                 }
                 for (aux_output_idx, channel_count) in layout.aux_output_ports.iter().enumerate() {
-                    if (*outputs.add(aux_output_idx + aux_output_start_idx)).count_ones()
-                        != channel_count.get()
-                    {
+                    if unsafe {
+                        (*outputs.add(aux_output_idx + aux_output_start_idx)).count_ones()
+                            != channel_count.get()
+                    } {
                         return false;
                     }
                 }
@@ -843,7 +857,9 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
         let channel_map = channel_count_to_map(num_channels);
 
         nih_debug_assert_eq!(num_channels, channel_map.count_ones());
-        *arr = channel_map;
+        unsafe {
+            *arr = channel_map;
+        }
 
         kResultOk
     }
@@ -864,7 +880,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
         check_null_ptr!(setup);
 
         // There's no special handling for offline processing at the moment
-        let setup = &*setup;
+        let setup = unsafe { &*setup };
         nih_debug_assert_eq!(
             setup.symbolic_sample_size,
             vst3_sys::vst::SymbolicSampleSizes::kSample32 as i32
@@ -937,7 +953,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
         // sure that FTZ is set up correctly
         process_wrapper(|| {
             // We need to handle incoming automation first
-            let data = &*data;
+            let data = unsafe { &*data };
             let sample_rate = self
                 .inner
                 .current_buffer_config
@@ -984,13 +1000,13 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
             // First we'll go through the parameter changes. This may also include MIDI CC messages
             // if the plugin supports those
             if let Some(param_changes) = data.input_param_changes.upgrade() {
-                let num_param_queues = param_changes.get_parameter_count();
+                let num_param_queues = unsafe { param_changes.get_parameter_count() };
                 for change_queue_idx in 0..num_param_queues {
                     if let Some(param_change_queue) =
-                        param_changes.get_parameter_data(change_queue_idx).upgrade()
+                        unsafe { param_changes.get_parameter_data(change_queue_idx).upgrade() }
                     {
-                        let param_hash = param_change_queue.get_parameter_id();
-                        let num_changes = param_change_queue.get_point_count();
+                        let param_hash = unsafe { param_change_queue.get_parameter_id() };
+                        let num_changes = unsafe { param_change_queue.get_point_count() };
                         if num_changes <= 0 {
                             continue;
                         }
@@ -998,12 +1014,13 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                         let mut sample_offset = 0i32;
                         let mut value = 0.0f64;
                         for change_idx in 0..num_changes {
-                            if param_change_queue.get_point(
-                                change_idx,
-                                &mut sample_offset,
-                                &mut value,
-                            ) == kResultOk
-                            {
+                            if unsafe {
+                                param_change_queue.get_point(
+                                    change_idx,
+                                    &mut sample_offset,
+                                    &mut value,
+                                ) == kResultOk
+                            } {
                                 // Later this timing will be compensated for block splits by calling
                                 // `event.subtract_timing(block_start)` before it is passed to the
                                 // plugin. Out of bounds events are clamped to the buffer>
@@ -1069,21 +1086,21 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                 let mut note_expression_controller =
                     self.inner.note_expression_controller.borrow_mut();
                 if let Some(events) = data.input_events.upgrade() {
-                    let num_events = events.get_event_count();
+                    let num_events = unsafe { events.get_event_count() };
 
                     let mut event: MaybeUninit<_> = MaybeUninit::uninit();
                     for i in 0..num_events {
-                        let result = events.get_event(i, event.as_mut_ptr());
+                        let result = unsafe { events.get_event(i, event.as_mut_ptr()) };
                         nih_debug_assert_eq!(result, kResultOk);
 
-                        let event = event.assume_init();
+                        let event = unsafe { event.assume_init() };
                         let timing = clamp_input_event_timing(
                             event.sample_offset as u32,
                             total_buffer_len as u32,
                         );
 
                         if event.type_ == EventTypes::kNoteOnEvent as u16 {
-                            let event = event.event.note_on;
+                            let event = unsafe { event.event.note_on };
 
                             // We need to keep track of note IDs to be able to handle not
                             // expression value events
@@ -1101,7 +1118,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                                 velocity: event.velocity,
                             }));
                         } else if event.type_ == EventTypes::kNoteOffEvent as u16 {
-                            let event = event.event.note_off;
+                            let event = unsafe { event.event.note_off };
                             process_events.push(ProcessEvent::NoteEvent(NoteEvent::NoteOff {
                                 timing,
                                 voice_id: if event.note_id != -1 {
@@ -1114,7 +1131,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                                 velocity: event.velocity,
                             }));
                         } else if event.type_ == EventTypes::kPolyPressureEvent as u16 {
-                            let event = event.event.poly_pressure;
+                            let event = unsafe { event.event.poly_pressure };
                             process_events.push(ProcessEvent::NoteEvent(NoteEvent::PolyPressure {
                                 timing,
                                 voice_id: if event.note_id != -1 {
@@ -1127,7 +1144,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                                 pressure: event.pressure,
                             }));
                         } else if event.type_ == EventTypes::kNoteExpressionValueEvent as u16 {
-                            let event = event.event.note_expression_value;
+                            let event = unsafe { event.event.note_expression_value };
                             match note_expression_controller.translate_event(timing, &event) {
                                 Some(translated_event) => {
                                     process_events.push(ProcessEvent::NoteEvent(translated_event))
@@ -1138,16 +1155,17 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                                 ),
                             }
                         } else if event.type_ == EventTypes::kDataEvent as u16
-                            && event.event.data.type_ == 0
+                            && unsafe { event.event.data.type_ == 0 }
                         {
                             // 0 = kMidiSysEx
-                            let event = event.event.data;
+                            let event = unsafe { event.event.data };
 
                             // `NoteEvent::from_midi` prints some tracing if parsing fails, which is
                             // not necessarily an error
                             assert!(!event.bytes.is_null());
-                            let sysex_buffer =
-                                std::slice::from_raw_parts(event.bytes, event.size as usize);
+                            let sysex_buffer = unsafe {
+                                std::slice::from_raw_parts(event.bytes, event.size as usize)
+                            };
                             if let Ok(note_event) = NoteEvent::from_midi(timing, sysex_buffer) {
                                 process_events.push(ProcessEvent::NoteEvent(note_event));
                             };
@@ -1229,7 +1247,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                     // The buffer manager preallocated buffer slices for all the IO and storage for
                     // any axuiliary inputs.
                     let mut buffer_manager = self.inner.buffer_manager.borrow_mut();
-                    let buffers =
+                    let buffers = unsafe {
                         buffer_manager.create_buffers(block_start, block_len, |buffer_source| {
                             if data.num_outputs > 0
                                 && !data.outputs.is_null()
@@ -1306,7 +1324,8 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                                     }
                                 }
                             }
-                        });
+                        })
+                    };
 
                     // We already checked whether the host has initiated a parameter flush, but in
                     // case it still did something unexpected that we did not catch we'll still try
@@ -1333,7 +1352,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                     // from the other fields
                     let mut transport = Transport::new(sample_rate);
                     if !data.context.is_null() {
-                        let context = &*data.context;
+                        let context = unsafe { &*data.context };
 
                         // These constants are missing from vst3-sys, see:
                         // https://steinbergmedia.github.io/vst3_doc/vstinterfaces/structSteinberg_1_1Vst_1_1ProcessContext.html
@@ -1421,7 +1440,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                     while let Some(event) = output_events.pop_front() {
                         // We'll set the correct variant on this struct, or skip to the next loop
                         // iteration if we don't handle the event type
-                        let mut vst3_event: Event = mem::zeroed();
+                        let mut vst3_event: Event = unsafe { mem::zeroed() };
                         vst3_event.bus_index = 0;
                         // There's also a ppqPos field, but uh how about no
                         vst3_event.sample_offset = clamp_output_event_timing(
@@ -1619,7 +1638,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
 
                                 // NOTE: We need to have this call here while `sysex_buffer` is
                                 //       still in scope since the event contains pointers to it
-                                let result = events.add_event(&mut vst3_event);
+                                let result = unsafe { events.add_event(&mut vst3_event) };
                                 nih_debug_assert_eq!(result, kResultOk);
                                 continue;
                             }
@@ -1631,7 +1650,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
                             }
                         };
 
-                        let result = events.add_event(&mut vst3_event);
+                        let result = unsafe { events.add_event(&mut vst3_event) };
                         nih_debug_assert_eq!(result, kResultOk);
                     }
                 }
@@ -1700,8 +1719,10 @@ impl<P: Vst3Plugin> IMidiMapping for Wrapper<P> {
 
         // We reserve a contiguous parameter range right at the end of the allowed parameter indices
         // for these MIDI CC parameters
-        *param_id =
-            VST3_MIDI_PARAMS_START + midi_cc_number as u32 + (channel as u32 * VST3_MIDI_CCS);
+        unsafe {
+            *param_id =
+                VST3_MIDI_PARAMS_START + midi_cc_number as u32 + (channel as u32 * VST3_MIDI_CCS);
+        }
 
         kResultOk
     }
@@ -1734,9 +1755,11 @@ impl<P: Vst3Plugin> INoteExpressionController for Wrapper<P> {
 
         check_null_ptr!(info);
 
-        *info = mem::zeroed();
+        unsafe {
+            *info = mem::zeroed();
+        }
 
-        let info = &mut *info;
+        let info = unsafe { &mut *info };
         let note_expression_info =
             &note_expressions::KNOWN_NOTE_EXPRESSIONS[note_expression_idx as usize];
         info.type_id = note_expression_info.type_id;
@@ -1802,9 +1825,9 @@ impl<P: Vst3Plugin> IUnitInfo for Wrapper<P> {
 
         match self.inner.param_units.info(unit_index as usize) {
             Some((unit_id, unit_info)) => {
-                *info = mem::zeroed();
+                unsafe { *info = mem::zeroed() };
 
-                let info = &mut *info;
+                let info = unsafe { &mut *info };
                 info.id = unit_id;
                 info.parent_unit_id = unit_info.parent_id;
                 u16strlcpy(&mut info.name, &unit_info.name);

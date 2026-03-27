@@ -19,14 +19,14 @@ impl<P: Plugin> Backend<P> for Dummy {
     fn run(
         &mut self,
         mut cb: impl FnMut(
-                &mut Buffer,
-                &mut AuxiliaryBuffers,
-                Transport,
-                &[PluginNoteEvent<P>],
-                &mut Vec<PluginNoteEvent<P>>,
-            ) -> bool
-            + 'static
-            + Send,
+            &mut Buffer,
+            &mut AuxiliaryBuffers,
+            Transport,
+            &[PluginNoteEvent<P>],
+            &mut Vec<PluginNoteEvent<P>>,
+        ) -> bool
+        + 'static
+        + Send,
     ) {
         // We can't really do anything meaningful here, so we'll simply periodically call the
         // callback with empty buffers

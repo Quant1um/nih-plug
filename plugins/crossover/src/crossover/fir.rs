@@ -20,7 +20,7 @@ use realfft::{ComplexToReal, RealFftPlanner, RealToComplex};
 use std::f32;
 use std::sync::Arc;
 
-use self::filter::{FftFirFilter, FirCoefficients, FFT_INPUT_SIZE, FFT_SIZE};
+use self::filter::{FFT_INPUT_SIZE, FFT_SIZE, FftFirFilter, FirCoefficients};
 use crate::crossover::fir::filter::FILTER_SIZE;
 use crate::crossover::iir::biquad::{BiquadCoefficients, NEUTRAL_Q};
 use crate::{NUM_BANDS, NUM_CHANNELS};

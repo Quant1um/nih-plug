@@ -1,8 +1,8 @@
 use atomic_refcell::AtomicRefMut;
 use std::cell::Cell;
 use std::collections::VecDeque;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use vst3_sys::vst::IComponentHandler;
 
 use crate::prelude::{
@@ -137,9 +137,9 @@ impl<P: Vst3Plugin> GuiContext for WrapperGuiContext<P> {
     unsafe fn raw_begin_set_parameter(&self, param: ParamPtr) {
         match &*self.inner.component_handler.borrow() {
             Some(handler) => match self.inner.param_ptr_to_hash.get(&param) {
-                Some(hash) => {
+                Some(hash) => unsafe {
                     handler.begin_edit(*hash);
-                }
+                },
                 None => nih_debug_assert_failure!("Unknown parameter: {:?}", param),
             },
             None => nih_debug_assert_failure!("Component handler not yet set"),
@@ -179,7 +179,9 @@ impl<P: Vst3Plugin> GuiContext for WrapperGuiContext<P> {
                         );
                     }
 
-                    handler.perform_edit(*hash, normalized as f64);
+                    unsafe {
+                        handler.perform_edit(*hash, normalized as f64);
+                    }
                 }
                 None => nih_debug_assert_failure!("Unknown parameter: {:?}", param),
             },
@@ -201,9 +203,9 @@ impl<P: Vst3Plugin> GuiContext for WrapperGuiContext<P> {
     unsafe fn raw_end_set_parameter(&self, param: ParamPtr) {
         match &*self.inner.component_handler.borrow() {
             Some(handler) => match self.inner.param_ptr_to_hash.get(&param) {
-                Some(hash) => {
+                Some(hash) => unsafe {
                     handler.end_edit(*hash);
-                }
+                },
                 None => nih_debug_assert_failure!("Unknown parameter: {:?}", param),
             },
             None => nih_debug_assert_failure!("Component handler not yet set"),

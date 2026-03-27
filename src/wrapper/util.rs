@@ -15,14 +15,14 @@ pub(crate) mod context_checks;
 /// controls the FTZ behavior.
 ///
 /// <https://cdrdv2-public.intel.com/843823/252046-sdm-change-document-1.pdf>
-#[cfg(target_feature = "sse")]
+#[cfg(all(not(miri), target_feature = "sse", feature = "unsafe_flush_denormals"))]
 const SSE_FTZ_BIT: u32 = 1 << 15;
 
 /// The bit that controls flush-to-zero behavior for denormals in 32 and 64-bit floating point
 /// numbers on AArch64.
 ///
 /// <https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/FPCR--Floating-point-Control-Register>
-#[cfg(target_arch = "aarch64")]
+#[cfg(all(not(miri), target_arch = "aarch64", feature = "unsafe_flush_denormals"))]
 const AARCH64_FTZ_BIT: u64 = 1 << 24;
 
 #[cfg(all(
@@ -203,6 +203,9 @@ pub fn process_wrapper<T, F: FnOnce() -> T>(f: F) -> T {
 /// set, it will be restored to its old value when this gets dropped.
 struct ScopedFtz {
     /// Whether FTZ should be disabled again, i.e. if FTZ was not enabled before.
+    /// Only unused if not on SSE or aarch64 with the "unsafe_flush_denormals"
+    /// feature enabled.
+    #[allow(unused)]
     should_disable_again: bool,
     /// We can't directly implement !Send and !Sync, but this will do the same thing. This object
     /// affects the current thread's floating point registers, so it may only be dropped on the
@@ -212,7 +215,7 @@ struct ScopedFtz {
 
 impl ScopedFtz {
     fn enable() -> Self {
-        #[cfg(not(miri))]
+        #[cfg(all(not(miri), feature = "unsafe_flush_denormals"))]
         {
             #[cfg(target_feature = "sse")]
             {
@@ -254,7 +257,9 @@ impl ScopedFtz {
             }
         }
 
-        #[allow(unreachable_code)] // This is only unreachable if on SSE or aarch64
+        // This is only unreachable if on SSE or aarch64 with the "unsafe_flush_denormals"
+        // feature enabled.
+        #[allow(unreachable_code)]
         Self {
             should_disable_again: false,
             _send_sync_marker: PhantomData,
@@ -264,7 +269,7 @@ impl ScopedFtz {
 
 impl Drop for ScopedFtz {
     fn drop(&mut self) {
-        #[cfg(not(miri))]
+        #[cfg(all(not(miri), feature = "unsafe_flush_denormals"))]
         if self.should_disable_again {
             #[cfg(target_feature = "sse")]
             {

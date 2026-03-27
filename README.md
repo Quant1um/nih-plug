@@ -1,19 +1,26 @@
 # NIH-plug
 
-[![Automated builds](https://github.com/robbert-vdh/nih-plug/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/robbert-vdh/nih-plug/actions/workflows/build.yml?query=branch%3Amaster)
-[![Tests](https://github.com/robbert-vdh/nih-plug/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/robbert-vdh/nih-plug/actions/workflows/test.yml?query=branch%3Amaster)
-[![Docs](https://github.com/robbert-vdh/nih-plug/actions/workflows/docs.yml/badge.svg?branch=master)](https://nih-plug.robbertvanderhelm.nl/)
+[![Automated builds](https://github.com/BillyDM/nih-plug/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/BillyDM/nih-plug/actions/workflows/build.yml?query=branch%3Amain)
+[![Tests](https://github.com/BillyDM/nih-plug/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/BillyDM/nih-plug/actions/workflows/test.yml?query=branch%3Amain)
+<!-- TODO: [![Docs](https://github.com/BillyDM/nih-plug/actions/workflows/docs.yml/badge.svg?branch=main)](https://nih-plug.robbertvanderhelm.nl/) -->
+
+> This is a hard fork of https://github.com/robbert-vdh/nih-plug, since the
+> original author is no longer maintaining it.
 
 NIH-plug is an API-agnostic audio plugin framework written in Rust, as well as a
-small collection of plugins. The idea is to have a stateful yet simple plugin
-API that gets rid of as much unnecessary ceremony wherever possible, while also
-keeping the amount of magic to minimum and making it easy to experiment with
-different approaches to things. See the [current features](#current-features)
-section for more information on the project's current status.
+small collection of plugins.
 
+The idea is to have a stateful yet simple plugin API that gets rid of as much
+unnecessary ceremony wherever possible, while also keeping the amount of magic to
+a minimum and making it easy to experiment with different approaches to things. See
+the [current features](#current-features) section for more information on the
+project's current status.
+
+<!--- TODO
 Check out the [documentation](https://nih-plug.robbertvanderhelm.nl/), or use
 the [cookiecutter template](https://github.com/robbert-vdh/nih-plug-template) to
 quickly get started with NIH-plug.
+-->
 
 ### Table of contents
 
@@ -30,12 +37,12 @@ quickly get started with NIH-plug.
 Check each plugin's readme file for more details on what the plugin actually
 does. You can download the development binaries for Linux, Windows and macOS
 from the [automated
-builds](https://github.com/robbert-vdh/nih-plug/actions/workflows/build.yml?query=branch%3Amaster)
+builds](https://github.com/BillyDM/nih-plug/actions/workflows/build.yml?query=branch%3Amain)
 page. Or if you're not signed in on GitHub, then you can also find the latest
 nightly build
-[here](https://nightly.link/robbert-vdh/nih-plug/workflows/build/master). You
-may need to [disable Gatekeeper](https://disable-gatekeeper.github.io/) on macOS to be able to use
-the plugins.
+[here](https://nightly.link/BillyDM/nih-plug/workflows/build/main). You
+may need to [disable Gatekeeper](https://disable-gatekeeper.github.io/) on macOS
+to be able to use the plugins.
 
 Scroll down for more information on the underlying plugin framework.
 
@@ -45,17 +52,21 @@ Scroll down for more information on the underlying plugin framework.
   corresponding to that note's frequency and use that as a single waveform
   cycle. This can end up sounding like an in-tune glitch when used sparingly, or
   like a weird synthesizer when used less subtly.
+<!-- TODO
 - [**Crisp**](plugins/crisp) adds a bright crispy top end to any low bass sound.
   Inspired by Polarity's [Fake Distortion](https://youtu.be/MKfFn4L1zeg) video.
+-->
 - [**Crossover**](plugins/crossover) is as boring as it sounds. It cleanly
   splits the signal into two to five bands using a variety of algorithms. Those
   bands are then sent to auxiliary outputs so they can be accessed and processed
   individually. Meant as an alternative to Bitwig's Multiband FX devices but
   with cleaner crossovers and a linear-phase option.
+<!-- TODO
 - [**Diopser**](plugins/diopser) is a totally original phase rotation plugin.
   Useful for oomphing up kickdrums and basses, transforming synths into their
   evil phase-y cousin, and making everything sound like a cheap Sci-Fi laser
   beam.
+-->
 - [**Loudness War Winner**](plugins/loudness_war_winner) does what it says on
   the tin. Have you ever wanted to show off your dominance by winning the
   loudness war? Neither have I. Dissatisfaction guaranteed.
@@ -78,11 +89,13 @@ Scroll down for more information on the underlying plugin framework.
   liked the distortion and just wished it had oversampling. All credit goes to
   Chris from Airwindows. I just wanted to share this in case anyone else finds
   it useful.
+<!-- TODO
 - [**Spectral Compressor**](plugins/spectral_compressor) can squash anything
   into pink noise, apply simultaneous upwards and downwards compressor to
   dynamically match the sidechain signal's spectrum and morph one sound into
   another, and lots more. Have you ever wondered what a 16384 band OTT would
   sound like? Neither have I.
+-->
 
 ## Framework
 
@@ -135,6 +148,7 @@ Scroll down for more information on the underlying plugin framework.
   `true`.
 - Optional support for compressing the human readable JSON state files using
   [Zstandard](https://en.wikipedia.org/wiki/Zstd).
+<!-- TODO
 - Comes with adapters for popular Rust GUI frameworks as well as some basic
   widgets for them that integrate with NIH-plug's parameter system. Currently
   there's support for [egui](nih_plug_egui), [iced](nih_plug_iced) and
@@ -142,6 +156,7 @@ Scroll down for more information on the underlying plugin framework.
   - A simple and safe API for state saving and restoring from the editor is
     provided by the framework if you want to do your own internal preset
     management.
+-->
 - Full support for receiving and outputting both modern polyphonic note
   expression events as well as MIDI CCs, channel pressure, and pitch bend for
   CLAP and VST3.
@@ -159,8 +174,8 @@ Scroll down for more information on the underlying plugin framework.
   detects which plugin targets your plugin exposes and creates the correct
   plugin bundles for your target operating system and architecture, with
   cross-compilation support. The cargo subcommand can easily be added to [your
-  own project](https://github.com/robbert-vdh/nih-plug/tree/master/nih_plug_xtask)
-  as an alias or [globally](https://github.com/robbert-vdh/nih-plug/tree/master/cargo_nih_plug)
+  own project](https://github.com/robbert-vdh/nih-plug/tree/main/nih_plug_xtask)
+  as an alias or [globally](https://github.com/robbert-vdh/nih-plug/tree/main/cargo_nih_plug)
   as a regular cargo subcommand.
 - Tested on Linux and Windows, with limited testing on macOS. Windows support
   has mostly been tested through Wine with
@@ -194,44 +209,45 @@ compiling.
 The best way to get an idea for what the API looks like is to look at the
 examples.
 
-- [**gain**](plugins/examples/gain) is a simple smoothed gain plugin that shows
+- [**gain**](examples/gain) is a simple smoothed gain plugin that shows
   off a couple other parts of the API, like support for storing arbitrary
   serializable state.
 - **gain-gui** is the same plugin as gain, but with a GUI to control the
   parameter and a digital peak meter. Comes in three exciting flavors:
-  [egui](plugins/examples/gain_gui_egui),
-  [iced](plugins/examples/gain_gui_iced), and
-  [VIZIA](plugins/examples/gain_gui_vizia).
-
-  There are also examples for making custom GUIs with
-  [OpenGL](plugins/examples/byo_gui_gl), [wgpu](plugins/examples/byo_gui_wgpu),
-  and [softbuffer](plugins/examples/byo_gui_softbuffer).
-
-- [**midi_inverter**](plugins/examples/midi_inverter) takes note/MIDI events and
+  <!-- TODO
+    - [egui](examples/gain_gui_egui),
+    - [iced](examples/gain_gui_iced), and
+    - [VIZIA](examples/gain_gui_vizia).
+  -->
+    - There are also examples for making custom GUIs with
+      [OpenGL](examples/byo_gui_gl), [wgpu](examples/byo_gui_wgpu),
+      and [softbuffer](examples/byo_gui_softbuffer).
+- [**midi_inverter**](examples/midi_inverter) takes note/MIDI events and
   flips around the note, channel, expression, pressure, and CC values. This
   example demonstrates how to receive and output those events.
-- [**poly_mod_synth**](plugins/examples/poly_mod_synth) is a simple polyphonic
+- [**poly_mod_synth**](examples/poly_mod_synth) is a simple polyphonic
   synthesizer with support for polyphonic modulation in supported CLAP hosts.
   This demonstrates how polyphonic modulation can be used in NIH-plug.
-- [**sine**](plugins/examples/sine) is a simple test tone generator plugin with
+- [**sine**](examples/sine) is a simple test tone generator plugin with
   frequency smoothing that can also make use of MIDI input instead of generating
   a static signal based on the plugin's parameters.
-- [**stft**](plugins/examples/stft) shows off some of NIH-plug's other optional
+- [**stft**](examples/stft) shows off some of NIH-plug's other optional
   higher level helper features, such as an adapter to process audio with a
   short-term Fourier transform using the overlap-add method, all using the
   compositional `Buffer` interfaces.
-- [**sysex**](plugins/examples/sysex) is a simple example of how to send and
+- [**sysex**](examples/sysex) is a simple example of how to send and
   receive SysEx messages by defining custom message types.
 
 ## Licensing
 
-The framework, its libraries, and the example plugins in `plugins/examples/` are
-all licensed under the [ISC license](https://www.isc.org/licenses/). However,
-the [VST3 bindings](https://github.com/RustAudio/vst3-sys) used by
+The framework, its libraries, and the example plugins in `examples/` are
+all licensed under the [ISC license](https://www.isc.org/licenses/).
+
+However, the [VST3 bindings](https://github.com/RustAudio/vst3-sys) used by
 `nih_export_vst3!()` are licensed under the GPLv3 license. This means that
 unless you replace these bindings with your own bindings made from scratch, any
 VST3 plugins built with NIH-plug need to be able to comply with the terms of the
 GPLv3 license.
 
-The other plugins in the `plugins/` directory may be licensed under the GPLv3
+The other plugins in the `plugins/` directory are licensed under the GPLv3
 license. Check the plugin's `Cargo.toml` file for more information.
