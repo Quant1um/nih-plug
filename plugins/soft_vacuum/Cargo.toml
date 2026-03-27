@@ -11,7 +11,7 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-nih_plug = { path = "../../", features = ["assert_process_allocs"] }
+nih_plug = { path = "../../", features = ["assert_process_allocs", "unsafe_flush_denormals"] }
 
 [dev-dependencies]
 approx.workspace = true

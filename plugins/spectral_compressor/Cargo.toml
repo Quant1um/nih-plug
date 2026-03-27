@@ -11,13 +11,13 @@ publish = false
 crate-type = ["lib", "cdylib"]
 
 [dependencies]
-nih_plug = { path = "../../", features = ["assert_process_allocs", "standalone"] }
+nih_plug = { path = "../../", features = ["assert_process_allocs", "standalone", "standalone-opengl", "unsafe_flush_denormals"] }
 nih_plug_vizia = { path = "../../nih_plug_vizia" }
 realfft.workspace = true
 
 # For the GUI
 atomic_float.workspace = true
 crossbeam.workspace = true
-open = "3.0"
+open.workspace = true
 serde = { version = "1.0", features = ["derive"] }
-triple_buffer = "6.2"
+triple_buffer.workspace = true
