@@ -1,5 +1,5 @@
 use nih_plug::prelude::*;
-use rand::Rng;
+use rand::RngExt;
 use rand_pcg::Pcg32;
 use std::sync::Arc;
 
@@ -216,7 +216,7 @@ impl Plugin for PolyModSynth {
                                 note,
                                 velocity,
                             } => {
-                                let initial_phase: f32 = self.prng.gen();
+                                let initial_phase: f32 = self.prng.random_range(0.0..1.0);
                                 // This starts with the attack portion of the amplitude envelope
                                 let amp_envelope = Smoother::new(SmoothingStyle::Exponential(
                                     self.params.amp_attack_ms.value(),

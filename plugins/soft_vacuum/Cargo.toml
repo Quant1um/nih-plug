@@ -1,10 +1,11 @@
 [package]
 name = "soft_vacuum"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
 authors = ["Robbert van der Helm <mail@robbertvanderhelm.nl>"]
 license = "GPL-3.0-or-later"
 homepage = "https://github.com/robbert-vdh/nih-plug/tree/master/plugins/soft_vacuum"
+publish = false
 
 [lib]
 crate-type = ["cdylib"]
@@ -13,4 +14,4 @@ crate-type = ["cdylib"]
 nih_plug = { path = "../../", features = ["assert_process_allocs"] }
 
 [dev-dependencies]
-approx = "0.5.1"
+approx.workspace = true

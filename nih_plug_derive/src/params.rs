@@ -18,7 +18,7 @@ pub fn derive_params(input: TokenStream) -> TokenStream {
                 "Deriving Params is only supported on structs with named fields",
             )
             .to_compile_error()
-            .into()
+            .into();
         }
     };
 
@@ -87,7 +87,7 @@ pub fn derive_params(input: TokenStream) -> TokenStream {
                              #[id = \"foo_bar\"]",
                         )
                         .to_compile_error()
-                        .into()
+                        .into();
                     }
                 };
             } else if attr.path.is_ident("persist") {
@@ -128,7 +128,7 @@ pub fn derive_params(input: TokenStream) -> TokenStream {
                              argument: #[persist = \"foo_bar\"]",
                         )
                         .to_compile_error()
-                        .into()
+                        .into();
                     }
                 };
             } else if attr.path.is_ident("nested") {
@@ -203,7 +203,7 @@ pub fn derive_params(input: TokenStream) -> TokenStream {
                                          for more information.",
                                     )
                                     .to_compile_error()
-                                    .into()
+                                    .into();
                                 }
                             }
                         }
@@ -215,7 +215,7 @@ pub fn derive_params(input: TokenStream) -> TokenStream {
                              #[nested([array | id_prefix = \"foo\"], [group = \"group name\"])]",
                         )
                         .to_compile_error()
-                        .into()
+                        .into();
                     }
                 };
 
@@ -239,7 +239,7 @@ pub fn derive_params(input: TokenStream) -> TokenStream {
                             "'array' cannot be used together with 'id_prefix'",
                         )
                         .to_compile_error()
-                        .into()
+                        .into();
                     }
                 }));
 

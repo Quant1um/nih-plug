@@ -14,25 +14,25 @@ pub use crate::formatters;
 pub use crate::util;
 
 pub use crate::audio_setup::{
-    new_nonzero_u32, AudioIOLayout, AuxiliaryBuffers, BufferConfig, PortNames, ProcessMode,
+    AudioIOLayout, AuxiliaryBuffers, BufferConfig, PortNames, ProcessMode, new_nonzero_u32,
 };
 pub use crate::buffer::Buffer;
+pub use crate::context::PluginApi;
 pub use crate::context::gui::{AsyncExecutor, GuiContext, ParamSetter};
 pub use crate::context::init::InitContext;
 pub use crate::context::process::{ProcessContext, Transport};
 pub use crate::context::remote_controls::{
     RemoteControlsContext, RemoteControlsPage, RemoteControlsSection,
 };
-pub use crate::context::PluginApi;
 // This also includes the derive macro
 pub use crate::editor::{Editor, ParentWindowHandle};
 pub use crate::midi::sysex::SysExMessage;
-pub use crate::midi::{control_change, MidiConfig, NoteEvent, PluginNoteEvent};
+pub use crate::midi::{MidiConfig, NoteEvent, PluginNoteEvent, control_change};
+pub use crate::params::Params;
 pub use crate::params::enums::{Enum, EnumParam};
 pub use crate::params::internals::ParamPtr;
 pub use crate::params::range::{FloatRange, IntRange};
 pub use crate::params::smoothing::{AtomicF32, Smoothable, Smoother, SmoothingStyle};
-pub use crate::params::Params;
 pub use crate::params::{BoolParam, FloatParam, IntParam, Param, ParamFlags};
 pub use crate::plugin::clap::{ClapPlugin, PolyModulationConfig};
 #[cfg(feature = "vst3")]

@@ -73,19 +73,23 @@ impl StftInput for Buffer<'_> {
 
     #[inline]
     unsafe fn get_sample_unchecked(&self, channel: usize, sample_idx: usize) -> f32 {
-        *self
-            .as_slice_immutable()
-            .get_unchecked(channel)
-            .get_unchecked(sample_idx)
+        unsafe {
+            *self
+                .as_slice_immutable()
+                .get_unchecked(channel)
+                .get_unchecked(sample_idx)
+        }
     }
 }
 
 impl StftInputMut for Buffer<'_> {
     #[inline]
     unsafe fn get_sample_unchecked_mut(&mut self, channel: usize, sample_idx: usize) -> &mut f32 {
-        self.as_slice()
-            .get_unchecked_mut(channel)
-            .get_unchecked_mut(sample_idx)
+        unsafe {
+            self.as_slice()
+                .get_unchecked_mut(channel)
+                .get_unchecked_mut(sample_idx)
+        }
     }
 }
 
@@ -102,26 +106,24 @@ impl StftInput for Block<'_, '_> {
 
     #[inline]
     unsafe fn get_sample_unchecked(&self, channel: usize, sample_idx: usize) -> f32 {
-        *self.get_unchecked(channel).get_unchecked(sample_idx)
+        unsafe { *self.get_unchecked(channel).get_unchecked(sample_idx) }
     }
 }
 
 impl StftInputMut for Block<'_, '_> {
     #[inline]
     unsafe fn get_sample_unchecked_mut(&mut self, channel: usize, sample_idx: usize) -> &mut f32 {
-        self.get_unchecked_mut(channel)
-            .get_unchecked_mut(sample_idx)
+        unsafe {
+            self.get_unchecked_mut(channel)
+                .get_unchecked_mut(sample_idx)
+        }
     }
 }
 
 impl StftInput for [&[f32]] {
     #[inline]
     fn num_samples(&self) -> usize {
-        if self.is_empty() {
-            0
-        } else {
-            self[0].len()
-        }
+        if self.is_empty() { 0 } else { self[0].len() }
     }
 
     #[inline]
@@ -131,18 +133,14 @@ impl StftInput for [&[f32]] {
 
     #[inline]
     unsafe fn get_sample_unchecked(&self, channel: usize, sample_idx: usize) -> f32 {
-        *self.get_unchecked(channel).get_unchecked(sample_idx)
+        unsafe { *self.get_unchecked(channel).get_unchecked(sample_idx) }
     }
 }
 
 impl StftInput for [&mut [f32]] {
     #[inline]
     fn num_samples(&self) -> usize {
-        if self.is_empty() {
-            0
-        } else {
-            self[0].len()
-        }
+        if self.is_empty() { 0 } else { self[0].len() }
     }
 
     #[inline]
@@ -152,15 +150,17 @@ impl StftInput for [&mut [f32]] {
 
     #[inline]
     unsafe fn get_sample_unchecked(&self, channel: usize, sample_idx: usize) -> f32 {
-        *self.get_unchecked(channel).get_unchecked(sample_idx)
+        unsafe { *self.get_unchecked(channel).get_unchecked(sample_idx) }
     }
 }
 
 impl StftInputMut for [&mut [f32]] {
     #[inline]
     unsafe fn get_sample_unchecked_mut(&mut self, channel: usize, sample_idx: usize) -> &mut f32 {
-        self.get_unchecked_mut(channel)
-            .get_unchecked_mut(sample_idx)
+        unsafe {
+            self.get_unchecked_mut(channel)
+                .get_unchecked_mut(sample_idx)
+        }
     }
 }
 

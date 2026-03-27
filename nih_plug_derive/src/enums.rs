@@ -11,7 +11,7 @@ pub fn derive_enum(input: TokenStream) -> TokenStream {
         _ => {
             return syn::Error::new(ast.span(), "Deriving Enum is only supported on enums")
                 .to_compile_error()
-                .into()
+                .into();
         }
     };
 
@@ -54,7 +54,7 @@ pub fn derive_enum(input: TokenStream) -> TokenStream {
                              argument: #[name = \"foo bar\"]",
                         )
                         .to_compile_error()
-                        .into()
+                        .into();
                     }
                 };
             } else if attr.path.is_ident("id") {
@@ -78,7 +78,7 @@ pub fn derive_enum(input: TokenStream) -> TokenStream {
                              #[id = \"foo-bar\"]",
                         )
                         .to_compile_error()
-                        .into()
+                        .into();
                     }
                 };
             }

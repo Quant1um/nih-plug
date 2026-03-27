@@ -185,9 +185,11 @@ impl<'slice, 'sample> Block<'slice, 'sample> {
     /// `channel_index` must be in the range `0..Self::len()`.
     #[inline]
     pub unsafe fn get_unchecked(&self, channel_index: usize) -> &[f32] {
-        (&(*self.buffers))
-            .get_unchecked(channel_index)
-            .get_unchecked(self.current_block_start..self.current_block_end)
+        unsafe {
+            (&(*self.buffers))
+                .get_unchecked(channel_index)
+                .get_unchecked(self.current_block_start..self.current_block_end)
+        }
     }
 
     /// Access a mutable channel by index. Useful when you would otherwise iterate over this
@@ -211,9 +213,11 @@ impl<'slice, 'sample> Block<'slice, 'sample> {
     /// `channel_index` must be in the range `0..Self::len()`.
     #[inline]
     pub unsafe fn get_unchecked_mut(&mut self, channel_index: usize) -> &mut [f32] {
-        (&mut (*self.buffers))
-            .get_unchecked_mut(channel_index)
-            .get_unchecked_mut(self.current_block_start..self.current_block_end)
+        unsafe {
+            (&mut (*self.buffers))
+                .get_unchecked_mut(channel_index)
+                .get_unchecked_mut(self.current_block_start..self.current_block_end)
+        }
     }
 
     /// Get a SIMD vector containing the channel data for a specific sample in this block. If `LANES
@@ -258,9 +262,11 @@ impl<'slice, 'sample> Block<'slice, 'sample> {
     ) -> Simd<f32, LANES> {
         let mut values = [0.0; LANES];
         for (channel_idx, value) in values.iter_mut().enumerate() {
-            *value = *(&(*self.buffers))
-                .get_unchecked(channel_idx)
-                .get_unchecked(self.current_block_start + sample_index);
+            *value = unsafe {
+                *(&(*self.buffers))
+                    .get_unchecked(channel_idx)
+                    .get_unchecked(self.current_block_start + sample_index)
+            };
         }
 
         Simd::from_array(values)
@@ -313,9 +319,11 @@ impl<'slice, 'sample> Block<'slice, 'sample> {
     ) {
         let values = vector.to_array();
         for (channel_idx, value) in values.into_iter().enumerate() {
-            *(&mut (*self.buffers))
-                .get_unchecked_mut(channel_idx)
-                .get_unchecked_mut(self.current_block_start + sample_index) = value;
+            unsafe {
+                *(&mut (*self.buffers))
+                    .get_unchecked_mut(channel_idx)
+                    .get_unchecked_mut(self.current_block_start + sample_index) = value;
+            }
         }
     }
 }

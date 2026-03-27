@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use cpal::{
-    traits::*, Device, FromSample, InputCallbackInfo, OutputCallbackInfo, Sample, SampleFormat,
-    Stream, StreamConfig,
+    Device, FromSample, InputCallbackInfo, OutputCallbackInfo, Sample, SampleFormat, Stream,
+    StreamConfig, traits::*,
 };
 use crossbeam::sync::{Parker, Unparker};
 use midir::{
@@ -95,14 +95,14 @@ impl<P: Plugin> Backend<P> for CpalMidir {
     fn run(
         &mut self,
         cb: impl FnMut(
-                &mut Buffer,
-                &mut AuxiliaryBuffers,
-                Transport,
-                &[PluginNoteEvent<P>],
-                &mut Vec<PluginNoteEvent<P>>,
-            ) -> bool
-            + 'static
-            + Send,
+            &mut Buffer,
+            &mut AuxiliaryBuffers,
+            Transport,
+            &[PluginNoteEvent<P>],
+            &mut Vec<PluginNoteEvent<P>>,
+        ) -> bool
+        + 'static
+        + Send,
     ) {
         // So this is a lot of fun. There are up to four separate streams here, all using their own
         // callbacks. The audio output stream acts as the primary stream, and everything else either
@@ -676,14 +676,14 @@ impl CpalMidir {
         mut input_event_rb_consumer: Option<rtrb::Consumer<PluginNoteEvent<P>>>,
         mut output_event_rb_producer: Option<crossbeam::channel::Sender<MidiOutputTask<P>>>,
         mut cb: impl FnMut(
-                &mut Buffer,
-                &mut AuxiliaryBuffers,
-                Transport,
-                &[PluginNoteEvent<P>],
-                &mut Vec<PluginNoteEvent<P>>,
-            ) -> bool
-            + 'static
-            + Send,
+            &mut Buffer,
+            &mut AuxiliaryBuffers,
+            Transport,
+            &[PluginNoteEvent<P>],
+            &mut Vec<PluginNoteEvent<P>>,
+        ) -> bool
+        + 'static
+        + Send,
     ) -> impl FnMut(&mut [T], &OutputCallbackInfo) + Send + 'static
     where
         P: Plugin,

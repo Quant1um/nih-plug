@@ -2,9 +2,9 @@
 
 use core_foundation::base::kCFAllocatorDefault;
 use core_foundation::runloop::{
-    kCFRunLoopCommonModes, CFRunLoopAddSource, CFRunLoopGetMain, CFRunLoopRemoveSource,
-    CFRunLoopSourceContext, CFRunLoopSourceCreate, CFRunLoopSourceInvalidate, CFRunLoopSourceRef,
-    CFRunLoopSourceSignal, CFRunLoopWakeUp,
+    CFRunLoopAddSource, CFRunLoopGetMain, CFRunLoopRemoveSource, CFRunLoopSourceContext,
+    CFRunLoopSourceCreate, CFRunLoopSourceInvalidate, CFRunLoopSourceRef, CFRunLoopSourceSignal,
+    CFRunLoopWakeUp, kCFRunLoopCommonModes,
 };
 use crossbeam::channel::{self, Receiver, Sender};
 use objc::{class, msg_send, sel, sel_impl};

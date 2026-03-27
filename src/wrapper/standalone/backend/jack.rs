@@ -53,14 +53,14 @@ impl<P: Plugin> Backend<P> for Jack {
     fn run(
         &mut self,
         mut cb: impl FnMut(
-                &mut Buffer,
-                &mut AuxiliaryBuffers,
-                Transport,
-                &[PluginNoteEvent<P>],
-                &mut Vec<PluginNoteEvent<P>>,
-            ) -> bool
-            + 'static
-            + Send,
+            &mut Buffer,
+            &mut AuxiliaryBuffers,
+            Transport,
+            &[PluginNoteEvent<P>],
+            &mut Vec<PluginNoteEvent<P>>,
+        ) -> bool
+        + 'static
+        + Send,
     ) {
         let client = self.client.take().unwrap();
         let buffer_size = client.buffer_size();

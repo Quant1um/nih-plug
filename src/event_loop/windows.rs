@@ -2,21 +2,21 @@
 //! has only been tested under Wine with [yabridge](https://github.com/robbert-vdh/yabridge).
 
 use crossbeam::channel;
-use std::ffi::{c_void, CString};
+use std::ffi::{CString, c_void};
 use std::mem;
 use std::ptr;
 use std::sync::Weak;
 use std::thread::{self, ThreadId};
-use windows::core::PCSTR;
 use windows::Win32::Foundation::{HINSTANCE, HWND, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::{
     LibraryLoader::GetModuleHandleA, Performance::QueryPerformanceCounter,
 };
 use windows::Win32::UI::WindowsAndMessaging::{
-    CreateWindowExA, DefWindowProcA, DestroyWindow, GetWindowLongPtrA, PostMessageA,
-    RegisterClassExA, SetWindowLongPtrA, UnregisterClassA, CREATESTRUCTA, GWLP_USERDATA, HMENU,
+    CREATESTRUCTA, CreateWindowExA, DefWindowProcA, DestroyWindow, GWLP_USERDATA,
+    GetWindowLongPtrA, HMENU, PostMessageA, RegisterClassExA, SetWindowLongPtrA, UnregisterClassA,
     WINDOW_EX_STYLE, WINDOW_STYLE, WM_CREATE, WM_DESTROY, WM_USER, WNDCLASSEXA,
 };
+use windows::core::PCSTR;
 
 use super::{BackgroundThread, EventLoop, MainThreadExecutor};
 use crate::util::permit_alloc;

@@ -46,6 +46,7 @@ where
 {
     /// Create and start a new event loop. The thread this is called on will be designated as the
     /// main thread, so this should be called when constructing the wrapper.
+    #[allow(unused)]
     fn new_and_spawn(executor: Weak<E>) -> Self;
 
     /// Either post the function to the task queue so it can be delegated to the main thread, or

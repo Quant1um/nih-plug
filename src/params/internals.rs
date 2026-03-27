@@ -32,11 +32,13 @@ macro_rules! param_ptr_forward(
         /// Calling this function is only safe as long as the object this [`ParamPtr`] was created
         /// for is still alive.
         $vis unsafe fn $method(&self $(, $arg_name: $arg_ty)*) $(-> $ret)? {
-            match self {
-                ParamPtr::FloatParam(p) => (**p).$method($($arg_name),*),
-                ParamPtr::IntParam(p) => (**p).$method($($arg_name),*),
-                ParamPtr::BoolParam(p) => (**p).$method($($arg_name),*),
-                ParamPtr::EnumParam(p) => (**p).$method($($arg_name),*),
+            unsafe {
+                match self {
+                    ParamPtr::FloatParam(p) => (**p).$method($($arg_name),*),
+                    ParamPtr::IntParam(p) => (**p).$method($($arg_name),*),
+                    ParamPtr::BoolParam(p) => (**p).$method($($arg_name),*),
+                    ParamPtr::EnumParam(p) => (**p).$method($($arg_name),*),
+                }
             }
         }
     };
@@ -91,11 +93,13 @@ impl ParamPtr {
     /// Calling this function is only safe as long as the object this `ParamPtr` was created for is
     /// still alive.
     pub unsafe fn modulated_plain_value(&self) -> f32 {
-        match self {
-            ParamPtr::FloatParam(p) => (**p).modulated_plain_value(),
-            ParamPtr::IntParam(p) => (**p).modulated_plain_value() as f32,
-            ParamPtr::BoolParam(p) => (**p).modulated_normalized_value(),
-            ParamPtr::EnumParam(p) => (**p).modulated_plain_value() as f32,
+        unsafe {
+            match self {
+                ParamPtr::FloatParam(p) => (**p).modulated_plain_value(),
+                ParamPtr::IntParam(p) => (**p).modulated_plain_value() as f32,
+                ParamPtr::BoolParam(p) => (**p).modulated_normalized_value(),
+                ParamPtr::EnumParam(p) => (**p).modulated_plain_value() as f32,
+            }
         }
     }
 
@@ -113,11 +117,13 @@ impl ParamPtr {
     /// Calling this function is only safe as long as the object this `ParamPtr` was created for is
     /// still alive.
     pub unsafe fn unmodulated_plain_value(&self) -> f32 {
-        match self {
-            ParamPtr::FloatParam(p) => (**p).unmodulated_plain_value(),
-            ParamPtr::IntParam(p) => (**p).unmodulated_plain_value() as f32,
-            ParamPtr::BoolParam(p) => (**p).unmodulated_normalized_value(),
-            ParamPtr::EnumParam(p) => (**p).unmodulated_plain_value() as f32,
+        unsafe {
+            match self {
+                ParamPtr::FloatParam(p) => (**p).unmodulated_plain_value(),
+                ParamPtr::IntParam(p) => (**p).unmodulated_plain_value() as f32,
+                ParamPtr::BoolParam(p) => (**p).unmodulated_normalized_value(),
+                ParamPtr::EnumParam(p) => (**p).unmodulated_plain_value() as f32,
+            }
         }
     }
 
@@ -128,11 +134,13 @@ impl ParamPtr {
     /// Calling this function is only safe as long as the object this `ParamPtr` was created for is
     /// still alive.
     pub unsafe fn default_plain_value(&self) -> f32 {
-        match self {
-            ParamPtr::FloatParam(p) => (**p).default_plain_value(),
-            ParamPtr::IntParam(p) => (**p).default_plain_value() as f32,
-            ParamPtr::BoolParam(p) => (**p).modulated_normalized_value(),
-            ParamPtr::EnumParam(p) => (**p).default_plain_value() as f32,
+        unsafe {
+            match self {
+                ParamPtr::FloatParam(p) => (**p).default_plain_value(),
+                ParamPtr::IntParam(p) => (**p).default_plain_value() as f32,
+                ParamPtr::BoolParam(p) => (**p).modulated_normalized_value(),
+                ParamPtr::EnumParam(p) => (**p).default_plain_value() as f32,
+            }
         }
     }
 
@@ -144,11 +152,13 @@ impl ParamPtr {
     /// Calling this function is only safe as long as the object this `ParamPtr` was created for is
     /// still alive.
     pub unsafe fn preview_normalized(&self, plain: f32) -> f32 {
-        match self {
-            ParamPtr::FloatParam(p) => (**p).preview_normalized(plain),
-            ParamPtr::IntParam(p) => (**p).preview_normalized(plain as i32),
-            ParamPtr::BoolParam(_) => plain,
-            ParamPtr::EnumParam(p) => (**p).preview_normalized(plain as i32),
+        unsafe {
+            match self {
+                ParamPtr::FloatParam(p) => (**p).preview_normalized(plain),
+                ParamPtr::IntParam(p) => (**p).preview_normalized(plain as i32),
+                ParamPtr::BoolParam(_) => plain,
+                ParamPtr::EnumParam(p) => (**p).preview_normalized(plain as i32),
+            }
         }
     }
 
@@ -160,11 +170,13 @@ impl ParamPtr {
     /// Calling this function is only safe as long as the object this `ParamPtr` was created for is
     /// still alive.
     pub unsafe fn preview_plain(&self, normalized: f32) -> f32 {
-        match self {
-            ParamPtr::FloatParam(p) => (**p).preview_plain(normalized),
-            ParamPtr::IntParam(p) => (**p).preview_plain(normalized) as f32,
-            ParamPtr::BoolParam(_) => normalized,
-            ParamPtr::EnumParam(p) => (**p).preview_plain(normalized) as f32,
+        unsafe {
+            match self {
+                ParamPtr::FloatParam(p) => (**p).preview_plain(normalized),
+                ParamPtr::IntParam(p) => (**p).preview_plain(normalized) as f32,
+                ParamPtr::BoolParam(_) => normalized,
+                ParamPtr::EnumParam(p) => (**p).preview_plain(normalized) as f32,
+            }
         }
     }
 }

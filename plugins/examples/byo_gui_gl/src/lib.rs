@@ -1,14 +1,14 @@
 //! This plugin demonstrates how to "bring your own GUI toolkit" using a raw OpenGL context.
 
-use baseview::{gl::GlConfig, WindowHandle, WindowOpenOptions, WindowScalePolicy};
+use baseview::{WindowHandle, WindowOpenOptions, WindowScalePolicy, gl::GlConfig};
 use crossbeam::atomic::AtomicCell;
 use nih_plug::params::persist::PersistentField;
 use nih_plug::prelude::*;
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 use serde::{Deserialize, Serialize};
 use std::sync::{
-    atomic::{AtomicBool, Ordering},
     Arc,
+    atomic::{AtomicBool, Ordering},
 };
 
 /// The time it takes for the peak meter to decay by 12 dB after switching to complete silence.

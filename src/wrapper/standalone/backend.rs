@@ -19,13 +19,13 @@ pub trait Backend<P: Plugin>: 'static + Send + Sync {
     fn run(
         &mut self,
         cb: impl FnMut(
-                &mut Buffer,
-                &mut AuxiliaryBuffers,
-                Transport,
-                &[PluginNoteEvent<P>],
-                &mut Vec<PluginNoteEvent<P>>,
-            ) -> bool
-            + 'static
-            + Send,
+            &mut Buffer,
+            &mut AuxiliaryBuffers,
+            Transport,
+            &[PluginNoteEvent<P>],
+            &mut Vec<PluginNoteEvent<P>>,
+        ) -> bool
+        + 'static
+        + Send,
     );
 }

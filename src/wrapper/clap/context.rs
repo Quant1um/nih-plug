@@ -1,6 +1,6 @@
 use atomic_refcell::AtomicRefMut;
-use clap_sys::ext::remote_controls::{clap_remote_controls_page, CLAP_REMOTE_CONTROLS_COUNT};
-use clap_sys::id::{clap_id, CLAP_INVALID_ID};
+use clap_sys::ext::remote_controls::{CLAP_REMOTE_CONTROLS_COUNT, clap_remote_controls_page};
+use clap_sys::id::{CLAP_INVALID_ID, clap_id};
 use clap_sys::string_sizes::CLAP_NAME_SIZE;
 use std::cell::Cell;
 use std::collections::{HashMap, VecDeque};
@@ -174,7 +174,8 @@ impl<P: ClapPlugin> GuiContext for WrapperGuiContext<P> {
                 // (when the plugin isn't processing audio). The parameter's actual value will only
                 // be changed when the output event is written to prevent changing parameter values
                 // in the middle of processing audio.
-                let clap_plain_value = normalized as f64 * param.step_count().unwrap_or(1) as f64;
+                let clap_plain_value =
+                    normalized as f64 * unsafe { param.step_count().unwrap_or(1) as f64 };
                 let success = self
                     .wrapper
                     .queue_parameter_event(OutputParamEvent::SetValue {

@@ -10,8 +10,8 @@ use std::{
     num::NonZeroIsize,
     ptr::NonNull,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
 };
 
@@ -205,8 +205,9 @@ impl Editor for CustomSoftbufferEditor {
                     .map(|factor| WindowScalePolicy::ScaleFactor(factor as f64))
                     .unwrap_or(WindowScalePolicy::SystemScaleFactor),
 
-                // NOTE: The OpenGL feature in baseview is not needed here, but rust-analyzer gets
-                // confused when some crates do use it and others don't.
+                // NOTE: OpenGL support is not needed here, but rust-analyzer gets confused when
+                // some crates do use it and others don't. You should disabled the opengl feature
+                // in your crate.
                 gl_config: None,
             },
             move |window: &mut baseview::Window<'_>| -> CustomSoftbufferWindow {

@@ -1,8 +1,8 @@
 use std::cmp;
 use std::ops::Deref;
+use vst3_sys::ComInterface;
 use vst3_sys::interfaces::IUnknown;
 use vst3_sys::vst::TChar;
-use vst3_sys::ComInterface;
 use widestring::U16CString;
 
 /// When `Plugin::MIDI_INPUT` is set to `MidiConfig::MidiCCs` or higher then we'll register 130*16

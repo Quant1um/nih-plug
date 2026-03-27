@@ -77,7 +77,7 @@ macro_rules! nih_export_vst3 {
                     }
 
                     // We'll use the first plugin's info for this
-                    *info = self.plugin_infos[0].create_factory_info();
+                    unsafe { *info = self.plugin_infos[0].create_factory_info(); }
 
                     kResultOk
                 }
@@ -91,7 +91,7 @@ macro_rules! nih_export_vst3 {
                         return kInvalidArgument;
                     }
 
-                    *info = self.plugin_infos[index as usize].create_class_info();
+                    unsafe { *info = self.plugin_infos[index as usize].create_class_info(); }
 
                     kResultOk
                 }
@@ -114,7 +114,7 @@ macro_rules! nih_export_vst3 {
                     let mut plugin_idx = 0;
                     $({
                         let plugin_info = &self.plugin_infos[plugin_idx];
-                        if (*cid).data == *plugin_info.cid {
+                        if unsafe { (*cid).data == *plugin_info.cid } {
                             let wrapper = Wrapper::<$plugin_ty>::new();
 
                             // 99.999% of the times `iid` will be that of `IComponent`, but the
@@ -123,7 +123,7 @@ macro_rules! nih_export_vst3 {
                             // the interface without creating it, but since the odds that a caller
                             // will create an object with an interface we don't support are
                             // basically zero this is not a problem.
-                            let result = wrapper.query_interface(iid, obj);
+                            let result = unsafe { wrapper.query_interface(iid, obj) };
                             if result == kResultOk {
                                 // This is a bit awkward now but if the cast succeeds we need to get
                                 // rid of the reference from the `wrapper` binding. The VST3 query
@@ -133,7 +133,7 @@ macro_rules! nih_export_vst3 {
                                 // automatically get deallocated when this function returns (`Box`
                                 // is an incorrect choice on vst3-sys' part, it should have used a
                                 // `VstPtr` instead).
-                                wrapper.release();
+                                unsafe { wrapper.release(); }
                                 Box::leak(wrapper);
 
                                 return kResultOk;
@@ -153,7 +153,7 @@ macro_rules! nih_export_vst3 {
                         return kInvalidArgument;
                     }
 
-                    *info = self.plugin_infos[index as usize].create_class_info_2();
+                    unsafe { *info = self.plugin_infos[index as usize].create_class_info_2(); }
 
                     kResultOk
                 }
@@ -169,7 +169,7 @@ macro_rules! nih_export_vst3 {
                         return kInvalidArgument;
                     }
 
-                    *info = self.plugin_infos[index as usize].create_class_info_unicode();
+                    unsafe { *info = self.plugin_infos[index as usize].create_class_info_unicode(); }
 
                     kResultOk
                 }
@@ -182,7 +182,7 @@ macro_rules! nih_export_vst3 {
         }
 
         /// The VST3 plugin factory entry point.
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         pub extern "system" fn GetPluginFactory() -> *mut ::std::ffi::c_void {
             let factory = self::vst3::Factory::new();
 
@@ -193,7 +193,7 @@ macro_rules! nih_export_vst3 {
         // the BSDs:
         // https://github.com/steinbergmedia/vst3_public_sdk/blob/c3948deb407bdbff89de8fb6ab8500ea4df9d6d9/source/main/linuxmain.cpp#L47-L52
         #[allow(missing_docs)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         #[cfg(all(target_family = "unix", not(target_os = "macos")))]
         pub extern "C" fn ModuleEntry(_lib_handle: *mut ::std::ffi::c_void) -> bool {
             $crate::wrapper::setup_logger();
@@ -201,7 +201,7 @@ macro_rules! nih_export_vst3 {
         }
 
         #[allow(missing_docs)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         #[cfg(all(target_family = "unix", not(target_os = "macos")))]
         pub extern "C" fn ModuleExit() -> bool {
             true
@@ -210,7 +210,7 @@ macro_rules! nih_export_vst3 {
         // These two entry points are used on macOS:
         // https://github.com/steinbergmedia/vst3_public_sdk/blob/bc459feee68803346737901471441fd4829ec3f9/source/main/macmain.cpp#L60-L61
         #[allow(missing_docs)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         #[cfg(target_os = "macos")]
         pub extern "C" fn bundleEntry(_lib_handle: *mut ::std::ffi::c_void) -> bool {
             $crate::wrapper::setup_logger();
@@ -218,7 +218,7 @@ macro_rules! nih_export_vst3 {
         }
 
         #[allow(missing_docs)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         #[cfg(target_os = "macos")]
         pub extern "C" fn bundleExit() -> bool {
             true
@@ -227,7 +227,7 @@ macro_rules! nih_export_vst3 {
         // And these two entry points are used on Windows:
         // https://github.com/steinbergmedia/vst3_public_sdk/blob/bc459feee68803346737901471441fd4829ec3f9/source/main/dllmain.cpp#L59-L60
         #[allow(missing_docs)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         #[cfg(target_os = "windows")]
         pub extern "system" fn InitDll() -> bool {
             $crate::wrapper::setup_logger();
@@ -235,7 +235,7 @@ macro_rules! nih_export_vst3 {
         }
 
         #[allow(missing_docs)]
-        #[no_mangle]
+        #[unsafe(no_mangle)]
         #[cfg(target_os = "windows")]
         pub extern "system" fn ExitDll() -> bool {
             true

@@ -11,8 +11,8 @@ use std::{
     num::NonZeroIsize,
     ptr::NonNull,
     sync::{
-        atomic::{AtomicBool, Ordering},
         Arc,
+        atomic::{AtomicBool, Ordering},
     },
 };
 use wgpu::SurfaceTargetUnsafe;
@@ -54,6 +54,10 @@ impl CustomWgpuWindow {
         ))
     }
 
+    fn configure_surface(&mut self) {
+        self.surface.configure(&self.device, &self.surface_config);
+    }
+
     async fn create(
         target: SurfaceTargetUnsafe,
         gui_context: Arc<dyn GuiContext>,
@@ -65,7 +69,7 @@ impl CustomWgpuWindow {
         let width = (unscaled_width as f64 * scaling_factor as f64).round() as u32;
         let height = (unscaled_height as f64 * scaling_factor as f64).round() as u32;
 
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor::default());
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
 
         let surface = unsafe { instance.create_surface_unsafe(target) }.unwrap();
 
@@ -128,7 +132,7 @@ impl CustomWgpuWindow {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts: &[],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
 
         let swapchain_capabilities = surface.get_capabilities(&adapter);
@@ -152,7 +156,7 @@ impl CustomWgpuWindow {
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
             multisample: wgpu::MultisampleState::default(),
-            multiview: None,
+            multiview_mask: None,
             cache: None,
         });
 
@@ -173,16 +177,34 @@ impl CustomWgpuWindow {
 }
 
 impl baseview::WindowHandler for CustomWgpuWindow {
-    fn on_frame(&mut self, _window: &mut baseview::Window) {
+    fn on_frame(&mut self, window: &mut baseview::Window) {
         // Do rendering here.
 
-        let frame = self
-            .surface
-            .get_current_texture()
-            .expect("Failed to acquire next swap chain texture");
+        let frame = match self.surface.get_current_texture() {
+            wgpu::CurrentSurfaceTexture::Success(texture) => texture,
+            wgpu::CurrentSurfaceTexture::Occluded | wgpu::CurrentSurfaceTexture::Timeout => return,
+            wgpu::CurrentSurfaceTexture::Suboptimal(_) | wgpu::CurrentSurfaceTexture::Outdated => {
+                self.configure_surface();
+                return;
+            }
+            wgpu::CurrentSurfaceTexture::Validation => {
+                unreachable!("No error scope registered, so validation errors will panic")
+            }
+            wgpu::CurrentSurfaceTexture::Lost => {
+                let target = baseview_window_to_surface_target(window);
+                let instance =
+                    wgpu::Instance::new(wgpu::InstanceDescriptor::new_without_display_handle());
+                self.surface = unsafe { instance.create_surface_unsafe(target) }.unwrap();
+
+                self.configure_surface();
+                return;
+            }
+        };
+
         let view = frame
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
+
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -197,10 +219,12 @@ impl baseview::WindowHandler for CustomWgpuWindow {
                         load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
                         store: wgpu::StoreOp::Store,
                     },
+                    depth_slice: None,
                 })],
                 depth_stencil_attachment: None,
                 timestamp_writes: None,
                 occlusion_query_set: None,
+                multiview_mask: None,
             });
 
             rpass.set_pipeline(&self.pipeline);
@@ -320,8 +344,9 @@ impl Editor for CustomWgpuEditor {
                     .map(|factor| WindowScalePolicy::ScaleFactor(factor as f64))
                     .unwrap_or(WindowScalePolicy::SystemScaleFactor),
 
-                // NOTE: The OpenGL feature in baseview is not needed here, but rust-analyzer gets
-                // confused when some crates do use it and others don't.
+                // NOTE: OpenGL support is not needed here, but rust-analyzer gets confused when
+                // some crates do use it and others don't. You should disabled the opengl feature
+                // in your crate.
                 gl_config: None,
             },
             move |window: &mut baseview::Window<'_>| -> CustomWgpuWindow {
@@ -424,30 +449,30 @@ fn baseview_window_to_surface_target(window: &baseview::Window<'_>) -> wgpu::Sur
     wgpu::SurfaceTargetUnsafe::RawHandle {
         raw_display_handle: match raw_display_handle {
             raw_window_handle::RawDisplayHandle::AppKit(_) => {
-                raw_window_handle_06::RawDisplayHandle::AppKit(
+                Some(raw_window_handle_06::RawDisplayHandle::AppKit(
                     raw_window_handle_06::AppKitDisplayHandle::new(),
-                )
+                ))
             }
             raw_window_handle::RawDisplayHandle::Xlib(handle) => {
-                raw_window_handle_06::RawDisplayHandle::Xlib(
+                Some(raw_window_handle_06::RawDisplayHandle::Xlib(
                     raw_window_handle_06::XlibDisplayHandle::new(
                         NonNull::new(handle.display),
                         handle.screen,
                     ),
-                )
+                ))
             }
             raw_window_handle::RawDisplayHandle::Xcb(handle) => {
-                raw_window_handle_06::RawDisplayHandle::Xcb(
+                Some(raw_window_handle_06::RawDisplayHandle::Xcb(
                     raw_window_handle_06::XcbDisplayHandle::new(
                         NonNull::new(handle.connection),
                         handle.screen,
                     ),
-                )
+                ))
             }
             raw_window_handle::RawDisplayHandle::Windows(_) => {
-                raw_window_handle_06::RawDisplayHandle::Windows(
+                Some(raw_window_handle_06::RawDisplayHandle::Windows(
                     raw_window_handle_06::WindowsDisplayHandle::new(),
-                )
+                ))
             }
             _ => todo!(),
         },

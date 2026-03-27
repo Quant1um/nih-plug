@@ -1,8 +1,10 @@
 # NIH-plug
 
-[![Automated builds](https://github.com/robbert-vdh/nih-plug/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/robbert-vdh/nih-plug/actions/workflows/build.yml?query=branch%3Amaster)
-[![Tests](https://github.com/robbert-vdh/nih-plug/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/robbert-vdh/nih-plug/actions/workflows/test.yml?query=branch%3Amaster)
-[![Docs](https://github.com/robbert-vdh/nih-plug/actions/workflows/docs.yml/badge.svg?branch=master)](https://nih-plug.robbertvanderhelm.nl/)
+[![Automated builds](https://github.com/BillyDM/nih-plug/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/BillyDM/nih-plug/actions/workflows/build.yml?query=branch%3Amaster)
+[![Tests](https://github.com/BillyDM/nih-plug/actions/workflows/test.yml/badge.svg?branch=master)](https://github.com/BillyDM/nih-plug/actions/workflows/test.yml?query=branch%3Amaster)
+<!-- TODO: [![Docs](https://github.com/BillyDM/nih-plug/actions/workflows/docs.yml/badge.svg?branch=master)](https://nih-plug.robbertvanderhelm.nl/) -->
+
+> This is a hard fork of https://github.com/robbert-vdh/nih-plug, since the original author is no longer maintaining it.
 
 NIH-plug is an API-agnostic audio plugin framework written in Rust, as well as a
 small collection of plugins. The idea is to have a stateful yet simple plugin
