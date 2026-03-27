@@ -209,39 +209,38 @@ compiling.
 The best way to get an idea for what the API looks like is to look at the
 examples.
 
-- [**gain**](plugins/examples/gain) is a simple smoothed gain plugin that shows
+- [**gain**](examples/gain) is a simple smoothed gain plugin that shows
   off a couple other parts of the API, like support for storing arbitrary
   serializable state.
 - **gain-gui** is the same plugin as gain, but with a GUI to control the
   parameter and a digital peak meter. Comes in three exciting flavors:
   <!-- TODO
-    - [egui](plugins/examples/gain_gui_egui),
-    - [iced](plugins/examples/gain_gui_iced), and
-    - [VIZIA](plugins/examples/gain_gui_vizia).
+    - [egui](examples/gain_gui_egui),
+    - [iced](examples/gain_gui_iced), and
+    - [VIZIA](examples/gain_gui_vizia).
   -->
     - There are also examples for making custom GUIs with
-      [OpenGL](plugins/examples/byo_gui_gl), [wgpu](plugins/examples/byo_gui_wgpu),
-      and [softbuffer](plugins/examples/byo_gui_softbuffer).
-
-- [**midi_inverter**](plugins/examples/midi_inverter) takes note/MIDI events and
+      [OpenGL](examples/byo_gui_gl), [wgpu](examples/byo_gui_wgpu),
+      and [softbuffer](examples/byo_gui_softbuffer).
+- [**midi_inverter**](examples/midi_inverter) takes note/MIDI events and
   flips around the note, channel, expression, pressure, and CC values. This
   example demonstrates how to receive and output those events.
-- [**poly_mod_synth**](plugins/examples/poly_mod_synth) is a simple polyphonic
+- [**poly_mod_synth**](examples/poly_mod_synth) is a simple polyphonic
   synthesizer with support for polyphonic modulation in supported CLAP hosts.
   This demonstrates how polyphonic modulation can be used in NIH-plug.
-- [**sine**](plugins/examples/sine) is a simple test tone generator plugin with
+- [**sine**](examples/sine) is a simple test tone generator plugin with
   frequency smoothing that can also make use of MIDI input instead of generating
   a static signal based on the plugin's parameters.
-- [**stft**](plugins/examples/stft) shows off some of NIH-plug's other optional
+- [**stft**](examples/stft) shows off some of NIH-plug's other optional
   higher level helper features, such as an adapter to process audio with a
   short-term Fourier transform using the overlap-add method, all using the
   compositional `Buffer` interfaces.
-- [**sysex**](plugins/examples/sysex) is a simple example of how to send and
+- [**sysex**](examples/sysex) is a simple example of how to send and
   receive SysEx messages by defining custom message types.
 
 ## Licensing
 
-The framework, its libraries, and the example plugins in `plugins/examples/` are
+The framework, its libraries, and the example plugins in `examples/` are
 all licensed under the [ISC license](https://www.isc.org/licenses/).
 
 However, the [VST3 bindings](https://github.com/RustAudio/vst3-sys) used by
@@ -250,5 +249,5 @@ unless you replace these bindings with your own bindings made from scratch, any
 VST3 plugins built with NIH-plug need to be able to comply with the terms of the
 GPLv3 license.
 
-The other plugins in the `plugins/` directory may be licensed under the GPLv3
+The other plugins in the `plugins/` directory are licensed under the GPLv3
 license. Check the plugin's `Cargo.toml` file for more information.

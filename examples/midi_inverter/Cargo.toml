@@ -1,5 +1,5 @@
 [package]
-name = "sine"
+name = "midi_inverter"
 version = "0.1.0"
 edition.workspace = true
 authors = ["Robbert van der Helm <mail@robbertvanderhelm.nl>"]
@@ -10,4 +10,4 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-nih_plug = { path = "../../../", features = ["assert_process_allocs"] }
+nih_plug = { path = "../../", features = ["assert_process_allocs"] }
