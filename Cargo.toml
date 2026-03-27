@@ -22,11 +22,11 @@ repository = "https://github.com/BillyDM/nih-plug"
 [workspace]
 resolver = "2"
 members = [
-  "nih_plug_derive",
-  "nih_plug_xtask",
+  "crates/nih_plug_derive",
+  "crates/nih_plug_xtask",
 
-  "cargo_nih_plug",
-  "xtask",
+  "crates/cargo_nih_plug",
+  "crates/xtask",
 
   "plugins/examples/byo_gui_gl",
   "plugins/examples/byo_gui_softbuffer",
@@ -120,7 +120,7 @@ pollster = "0.4.0"
 parking_lot = "0.12"
 
 [dependencies]
-nih_plug_derive = { path = "nih_plug_derive" }
+nih_plug_derive = { path = "crates/nih_plug_derive" }
 serde.workspace = true
 anyhow.workspace = true
 anymap3 = "1.0.1"

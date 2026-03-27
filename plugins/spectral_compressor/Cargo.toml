@@ -14,7 +14,6 @@ crate-type = ["lib", "cdylib"]
 nih_plug = { path = "../../", features = ["assert_process_allocs", "standalone", "standalone-opengl", "unsafe_flush_denormals"] }
 nih_plug_vizia = { path = "../../nih_plug_vizia" }
 realfft.workspace = true
-
 # For the GUI
 atomic_float.workspace = true
 crossbeam.workspace = true
