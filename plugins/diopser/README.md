@@ -1,5 +1,8 @@
 # Diopser
 
+> TODO: Create a new GUI for this plugin, or just remove this plugin from this
+> repository and point users to the original repository if they want it.
+
 You were expecting Disperser[¹](#disperser), but it was me, Diopser!
 
 Diopser lets you rotate the phase of a signal around a specific frequency

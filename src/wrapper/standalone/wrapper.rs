@@ -333,9 +333,6 @@ impl<P: Plugin, B: Backend<P>> Wrapper<P, B> {
                     baseview::WindowScalePolicy::ScaleFactor(self.config.dpi_scale as f64)
                 };
 
-                #[cfg(feature = "standalone-opengl")]
-                let gl_config = editor.lock().standalone_opengl_config();
-
                 let (width, height) = editor.lock().size();
                 Window::open_blocking(
                     WindowOpenOptions {
@@ -346,7 +343,7 @@ impl<P: Plugin, B: Backend<P>> Wrapper<P, B> {
                         },
                         scale: scaling_policy,
                         #[cfg(feature = "standalone-opengl")]
-                        gl_config,
+                        gl_config: None,
                     },
                     move |window| {
                         let parent_handle = match window.raw_window_handle() {
