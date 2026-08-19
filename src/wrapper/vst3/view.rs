@@ -207,6 +207,7 @@ impl<P: Vst3Plugin> RunLoopEventHandler<P> {
         // to vtable poitners.
         let event_handler: SharedVstPtr<dyn IEventHandler> =
             unsafe { mem::transmute(&handler.__ieventhandlervptr as *const *const _) };
+
         assert_eq!(
             unsafe {
                 handler
@@ -229,16 +230,14 @@ impl<P: Vst3Plugin> RunLoopEventHandler<P> {
         // read again in `Self::on_fd_is_set()`.
         let notify_value = 1i8;
         const NOTIFY_VALUE_SIZE: usize = std::mem::size_of::<i8>();
-        assert_eq!(
-            unsafe {
-                libc::write(
-                    self.socket_write_fd,
-                    &notify_value as *const _ as *const c_void,
-                    NOTIFY_VALUE_SIZE,
-                )
-            },
-            NOTIFY_VALUE_SIZE as isize
-        );
+
+        unsafe {
+            libc::write(
+                self.socket_write_fd,
+                &notify_value as *const _ as *const c_void,
+                NOTIFY_VALUE_SIZE,
+            );
+        }
 
         Ok(())
     }
