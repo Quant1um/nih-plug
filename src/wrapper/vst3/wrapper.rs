@@ -381,8 +381,12 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
                 // NOTE: This needs to be dropped after the `plugin` lock to avoid deadlocks
                 let mut init_context = self.inner.make_init_context();
                 let audio_io_layout = self.inner.current_audio_io_layout.load();
-                let mut plugin = self.inner.plugin.lock();
-                if plugin.initialize(&audio_io_layout, &buffer_config, &mut init_context) {
+
+                if self.inner.plugin.lock().initialize(
+                    &audio_io_layout,
+                    &buffer_config,
+                    &mut init_context,
+                ) {
                     // NOTE: We don't call `Plugin::reset()` here. The call is done in `set_process()`
                     //       instead. Otherwise we would call the function twice, and `set_process()` needs
                     //       to be called after this function before the plugin may process audio again.
@@ -390,7 +394,7 @@ impl<P: Vst3Plugin> IComponent for Wrapper<P> {
                     // This preallocates enough space so we can transform all of the host's raw
                     // channel pointers into a set of `Buffer` objects for the plugin's main and
                     // auxiliary IO
-                    *self.inner.buffer_manager.borrow_mut() = BufferManager::for_audio_io_layout(
+                    *self.inner.buffer_manager.lock() = BufferManager::for_audio_io_layout(
                         buffer_config.max_buffer_size as usize,
                         audio_io_layout,
                     );
@@ -1228,7 +1232,7 @@ impl<P: Vst3Plugin> IAudioProcessor for Wrapper<P> {
 
                     // The buffer manager preallocated buffer slices for all the IO and storage for
                     // any axuiliary inputs.
-                    let mut buffer_manager = self.inner.buffer_manager.borrow_mut();
+                    let mut buffer_manager = self.inner.buffer_manager.lock();
                     let buffers =
                         buffer_manager.create_buffers(block_start, block_len, |buffer_source| {
                             if data.num_outputs > 0

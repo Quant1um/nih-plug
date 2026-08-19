@@ -150,7 +150,7 @@ pub struct Wrapper<P: ClapPlugin> {
     pub current_latency: AtomicU32,
     /// A data structure that helps manage and create buffers for all of the plugin's inputs and
     /// outputs based on channel pointers provided by the host.
-    buffer_manager: AtomicRefCell<BufferManager>,
+    buffer_manager: Mutex<BufferManager>,
     /// The plugin is able to restore state through a method on the `GuiContext`. To avoid changing
     /// parameters mid-processing and running into garbled data if the host also tries to load state
     /// at the same time the restoring happens at the end of each processing call. If this zero
@@ -555,7 +555,7 @@ impl<P: ClapPlugin> Wrapper<P> {
             current_latency: AtomicU32::new(0),
             // This is initialized just before calling `Plugin::initialize()` so that during the
             // process call buffers can be initialized without any allocations
-            buffer_manager: AtomicRefCell::new(BufferManager::for_audio_io_layout(
+            buffer_manager: Mutex::new(BufferManager::for_audio_io_layout(
                 0,
                 AudioIOLayout::default(),
             )),
@@ -1899,14 +1899,18 @@ impl<P: ClapPlugin> Wrapper<P> {
 
         // NOTE: This needs to be dropped after the `plugin` lock to avoid deadlocks
         let mut init_context = wrapper.make_init_context();
-        let mut plugin = wrapper.plugin.lock();
-        if plugin.initialize(&audio_io_layout, &buffer_config, &mut init_context) {
+
+        if wrapper
+            .plugin
+            .lock()
+            .initialize(&audio_io_layout, &buffer_config, &mut init_context)
+        {
             // NOTE: `Plugin::reset()` is called in `clap_plugin::start_processing()` instead of in
             //       this function
 
             // This preallocates enough space so we can transform all of the host's raw channel
             // pointers into a set of `Buffer` objects for the plugin's main and auxiliary IO
-            *wrapper.buffer_manager.borrow_mut() =
+            *wrapper.buffer_manager.lock() =
                 BufferManager::for_audio_io_layout(max_frames_count as usize, audio_io_layout);
 
             // Also store this for later, so we can reinitialize the plugin after restoring state
@@ -2049,7 +2053,7 @@ impl<P: ClapPlugin> Wrapper<P> {
                 // TODO: The audio buffers have a latency field, should we use those?
                 // TODO: Like with VST3, should we expose some way to access or set the silence/constant
                 //       flags?
-                let mut buffer_manager = wrapper.buffer_manager.borrow_mut();
+                let mut buffer_manager = wrapper.buffer_manager.lock();
                 let buffers =
                     buffer_manager.create_buffers(block_start, block_len, |buffer_source| {
                         // Explicitly take plugins with no main output that does have auxiliary

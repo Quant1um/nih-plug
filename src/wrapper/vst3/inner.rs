@@ -80,7 +80,7 @@ pub(crate) struct WrapperInner<P: Vst3Plugin> {
     pub current_latency: AtomicU32,
     /// A data structure that helps manage and create buffers for all of the plugin's inputs and
     /// outputs based on channel pointers provided by the host.
-    pub buffer_manager: AtomicRefCell<BufferManager>,
+    pub buffer_manager: Mutex<BufferManager>,
     /// The incoming events for the plugin, if `P::ACCEPTS_MIDI` is set. If
     /// `P::SAMPLE_ACCURATE_AUTOMATION`, this is also read in lockstep with the parameter change
     /// block splitting.
@@ -301,7 +301,7 @@ impl<P: Vst3Plugin> WrapperInner<P> {
             current_latency: AtomicU32::new(0),
             // This is initialized just before calling `Plugin::initialize()` so that during the
             // process call buffers can be initialized without any allocations
-            buffer_manager: AtomicRefCell::new(BufferManager::for_audio_io_layout(
+            buffer_manager: Mutex::new(BufferManager::for_audio_io_layout(
                 0,
                 AudioIOLayout::default(),
             )),
