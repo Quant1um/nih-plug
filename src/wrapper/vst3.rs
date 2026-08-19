@@ -1,3 +1,5 @@
+#![allow(semicolon_in_expressions_from_macros)]
+
 #[macro_use]
 mod util;
 
@@ -25,6 +27,7 @@ macro_rules! nih_export_vst3 {
         // macros. So instead we'll generate the implementation ad-hoc inside of this macro.
         #[doc(hidden)]
         mod vst3 {
+            #![allow(semicolon_in_expressions_from_macros)]
             use ::std::collections::HashSet;
 
             // `vst3_sys` is imported from the VST3 wrapper module
